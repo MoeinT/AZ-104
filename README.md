@@ -13,14 +13,14 @@ Within Azure, we can take advantage of Cloud Computing concepts and provision a 
 This resources represents a virtual network in Azure, which is a logical isolated network in which Azure services are deployed. Vnets allow your Azure Services to securely communicate with one another, the internet, and on-premise networks. When defining a VNet, we need to specify an ip address space, which is a range of ip addresses available to resources within the Vnet. 
 ### Subnets
 Subnets are a subdivision of the virtual network and is used to divide the Vnet into smaller and more manageable pieces. Subnets have their own ip ranges, that is a subset of the ip ranges of the Vnet. Here are the benefits of subnets:
-- Resource organization: We can have different subnets for VMs, databases, web applications and so on.
-- Network security and isolation: Each subnet has its own range of ip addresses, and resources within each subnet are completely
+- **Resource organization -** We can have different subnets for VMs, databases, web applications and so on.
+- **Network security and isolation -** Each subnet has its own range of ip addresses, and resources within each subnet are completely
 isolated from one another creating an additional level of security. In addition, Network Security Groups can be associated to each subnet acting as a firewall controlling inbound and outbound traffic to network interfaces.
 ### Azure Network Interface
 An Azure network interface is a networking component that connects Azure services to a subnet within a Virtual Network. 
 ### Azure Security Groups
 Network interfaces can have associated Network Security Groups (NSGs) that control inbound and outbound traffic to the associated VM or other resources. NSGs are used to define security rules to allow or deny traffic based on source and destination IP addresses, ports, and protocols.
-### Deployments
+### Deploying a Virtual Machine
 - Create an [Azure Virtual Network](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network.html) and provide a range of IP addresses available to resources within this Vnet using the CIDR notation. 
 - Create an [Azure Subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) within the above Vnet and provide a subset of IP Addresses in the Vnet
 - Create an [Azure Public IP](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip)  to be able to connect to the VM from the internet 
