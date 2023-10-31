@@ -1,60 +1,68 @@
 # This public IP address allows connectivity from the internet
-resource "azurerm_public_ip" "VMPublicIP" {
-  name                = "appvm-public-ip-${var.env}"
-  location            = azurerm_resource_group.Rg.location
-  resource_group_name = azurerm_resource_group.Rg.name
-  allocation_method   = "Static"
-  sku                 = "Basic"
+module "publicIPs" {
+  source = "../../CommonModules/PublicIp"
+  properties = {
+    "public-ip-${var.env}" = {
+      location            = module.Rg.rg-locations["az-104-${var.env}"],
+      resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
+      allocation_method   = "Static",
+      sku                 = "Basic"
+    }
+  }
 }
 
 # Security Group for the VM Network Interface
-resource "azurerm_network_security_group" "VMNSG" {
-  name                = "VmNSG-${var.env}"
-  location            = azurerm_resource_group.Rg.location
-  resource_group_name = azurerm_resource_group.Rg.name
+module "NSGs" {
+  source = "../../CommonModules/NetworkSecurityGroup"
+  properties = {
+    "NSG-${var.env}" = {
+      location            = module.Rg.rg-locations["az-104-${var.env}"]
+      resource_group_name = module.Rg.rg-names["az-104-${var.env}"]
+    }
+  }
 }
 
 # Create a NIC and associate it to the Public IP
-resource "azurerm_network_interface" "VMNetInterface" {
-  name                = "example-nic-${var.env}"
-  location            = azurerm_resource_group.Rg.location
-  resource_group_name = azurerm_resource_group.Rg.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.SubNet.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.VMPublicIP.id
+module "NICs" {
+  source = "../../CommonModules/NetworkInterface"
+  properties = {
+    # Nic VM
+    "nic-${var.env}" = {
+      location            = module.Rg.rg-locations["az-104-${var.env}"],
+      resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
+      ip_configuration = {
+        name                          = "internal",
+        subnet_id                     = module.Subnets.subnet-id["SubNet-${var.env}"],
+        private_ip_address_allocation = "Dynamic",
+        public_ip_address_id          = module.publicIPs.publicIp-id["public-ip-${var.env}"]
+      }
+    }
   }
 }
 
 # Associate the security group to the network interface
-resource "azurerm_network_interface_security_group_association" "NIC_NSG" {
-  network_interface_id      = azurerm_network_interface.VMNetInterface.id
-  network_security_group_id = azurerm_network_security_group.VMNSG.id
+module "NIC_NSG" {
+  source = "../../CommonModules/NetworkInterfaceSecurityGroupAssociation"
+  properties = {
+    "NIC_VM_NSG_${var.env}" = {
+      network_interface_id      = module.NICs.nic-id["nic-${var.env}"],
+      network_security_group_id = module.NSGs.nsg-id["NSG-${var.env}"]
+    }
+  }
 }
 
 # Define the Virtual Machine
-resource "azurerm_windows_virtual_machine" "AppVm" {
-  name                = "appvm-${var.env}"
-  resource_group_name = azurerm_resource_group.Rg.name
-  location            = azurerm_resource_group.Rg.location
-  size                = "Standard_D2s_v3"
-  admin_username      = var.vm_admin_username
-  admin_password      = var.vm_admin_password
-  network_interface_ids = [
-    azurerm_network_interface.VMNetInterface.id,
-  ]
-
-  os_disk {
-    caching              = "None"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2022-Datacenter"
-    version   = "latest"
+module "WindowsVM" {
+  source = "../../CommonModules/windowsVM"
+  properties = {
+    "appvm-${var.env}" = {
+      resource_group_name   = module.Rg.rg-names["az-104-${var.env}"],
+      location              = module.Rg.rg-locations["az-104-${var.env}"],
+      size                  = var.vm_size
+      admin_username        = var.vm_admin_username
+      admin_password        = var.vm_admin_password
+      network_interface_ids = [module.NICs.nic-id["nic-${var.env}"]]
+    }
   }
 }
+
