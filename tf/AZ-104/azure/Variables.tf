@@ -13,5 +13,5 @@ variable "vm_admin_password" {
 }
 
 variable "vm_size" {
-  type      = string
+  type = string
 }
