@@ -27,7 +27,7 @@ variable "vm_admin_password" {
 }
 
 variable "vm_size" {
-  type = string
+  type    = string
   default = "Standard_D2s_v3"
   validation {
     condition     = contains(["Standard_D2s_v3", "Standard_D4s_v3", "Standard_D8s_v3", "Standard_D16s_v3"], var.vm_size)

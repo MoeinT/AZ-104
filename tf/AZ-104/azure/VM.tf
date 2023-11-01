@@ -51,11 +51,11 @@ module "NIC_NSG" {
   }
 }
 
-# Define the Virtual Machine
-module "WindowsVM" {
-  source = "../../CommonModules/windowsVM"
+# Define a Linux Virtual Machine
+module "LinuxVM" {
+  source = "../../CommonModules/LinuxVM"
   properties = {
-    "appvm-${var.env}" = {
+    "appvm-linux-${var.env}" = {
       resource_group_name   = module.Rg.rg-names["az-104-${var.env}"],
       location              = module.Rg.rg-locations["az-104-${var.env}"],
       size                  = var.vm_size
@@ -66,3 +66,35 @@ module "WindowsVM" {
   }
 }
 
+# Network secutiry rules
+module "NetworkSecurityRules" {
+  source = "../../CommonModules/NetworkSecurityRule"
+  properties = {
+    # Allowing internet to access HTTP (port 80)
+    "httpaccess${var.env}" = {
+      priority                    = 300
+      direction                   = "Inbound"
+      access                      = "Allow"
+      protocol                    = "Tcp"
+      source_port_range           = "*"
+      destination_port_range      = "80"
+      source_address_prefix       = "*"
+      destination_address_prefix  = "*"
+      resource_group_name         = module.Rg.rg-names["az-104-${var.env}"]
+      network_security_group_name = module.NSGs.nsg-name["NSG-${var.env}"]
+    },
+    # Allowing internet to access SSH (port 22)
+    "sshaccess${var.env}" = {
+      priority                    = 100
+      direction                   = "Inbound"
+      access                      = "Allow"
+      protocol                    = "Tcp"
+      source_port_range           = "*"
+      destination_port_range      = "22"
+      source_address_prefix       = "*"
+      destination_address_prefix  = "*"
+      resource_group_name         = module.Rg.rg-names["az-104-${var.env}"]
+      network_security_group_name = module.NSGs.nsg-name["NSG-${var.env}"]
+    }
+  }
+}
