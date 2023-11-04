@@ -11,7 +11,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_network_security_rule" "example" {
+resource "azurerm_network_security_rule" "NSR" {
   for_each                    = var.properties
   name                        = each.key
   priority                    = each.value.priority
