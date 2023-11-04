@@ -12,7 +12,7 @@ provider "azurerm" {
 }
 
 # Provision a Linux Virtual Machine
-resource "azurerm_linux_virtual_machine" "example" {
+resource "azurerm_linux_virtual_machine" "AppLinuxVm" {
   for_each              = var.properties
   name                  = each.key
   resource_group_name   = each.value.resource_group_name
@@ -23,11 +23,12 @@ resource "azurerm_linux_virtual_machine" "example" {
   # Optionally add an admin password
   admin_password = lookup(each.value, "admin_password", null)
   # When an admin_password is specified disable_password_authentication must be set to false
-  disable_password_authentication = can(each.value.admin_password) && each.value.admin_password != null ? false : true
+  disable_password_authentication = can(each.value.admin_password) ? false : true
 
   # Optionally add an ssh key
   dynamic "admin_ssh_key" {
-    for_each = can(each.value.admin_ssh_key) ? each.value.admin_ssh_key != null ? [1] : [0] : []
+    # for_each = can(each.value.admin_ssh_key) ? each.value.admin_ssh_key != null ? [1] : [0] : []
+    for_each = can(each.value.admin_ssh_key.username) && can(each.value.admin_ssh_key.public_key) ? [1] : []
     content {
       username   = each.value.admin_ssh_key.username
       public_key = each.value.admin_ssh_key.public_key
