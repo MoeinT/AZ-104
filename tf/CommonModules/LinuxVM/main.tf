@@ -27,7 +27,6 @@ resource "azurerm_linux_virtual_machine" "AppLinuxVm" {
 
   # Optionally add an ssh key
   dynamic "admin_ssh_key" {
-    # for_each = can(each.value.admin_ssh_key) ? each.value.admin_ssh_key != null ? [1] : [0] : []
     for_each = can(each.value.admin_ssh_key.username) && can(each.value.admin_ssh_key.public_key) ? [1] : []
     content {
       username   = each.value.admin_ssh_key.username
@@ -36,8 +35,8 @@ resource "azurerm_linux_virtual_machine" "AppLinuxVm" {
   }
 
   os_disk {
-    caching              = "None"
-    storage_account_type = "Standard_LRS"
+    caching              = can(each.value.os_disk.caching) ? each.value.os_disk.caching : "None"
+    storage_account_type = can(each.value.os_disk.storage_account_type) ? each.value.os_disk.storage_account_type : "Standard_LRS"
   }
 
   source_image_reference {
