@@ -15,3 +15,13 @@ variable "vm_admin_password" {
 variable "vm_size" {
   type = string
 }
+
+variable "azuread_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "ip_address" {
+  type      = string
+  sensitive = true
+}

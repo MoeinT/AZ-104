@@ -34,3 +34,13 @@ variable "vm_size" {
     error_message = "Invalid VM size. Allowed sizes are: ${join(", ", ["Standard_D2s_v3", "Standard_D4s_v3", "Standard_D8s_v3", "Standard_D16s_v3"])}"
   }
 }
+
+variable "azuread_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "ip_address" {
+  type      = string
+  sensitive = true
+}

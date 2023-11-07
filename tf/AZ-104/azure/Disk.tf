@@ -8,6 +8,8 @@ module "Disks" {
       storage_account_type = "Standard_LRS",
       create_option        = "Empty",
       disk_size_gb         = "10",
+      # Assign the key vault key encryption set to this disk
+      disk_encryption_set_id = module.DiskEncryptionSet.encyptionset-id["vm-linux-encryption-key-${var.env}"],
       tags = {
         environment = var.env
       }
