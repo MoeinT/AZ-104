@@ -17,7 +17,8 @@ module "Subnets" {
     "SubNet-${var.env}" = {
       resource_group_name  = module.Rg.rg-names["az-104-${var.env}"],
       virtual_network_name = module.Vnets.vnet-name["Vnet-${var.env}"],
-      address_prefixes     = ["10.0.0.0/24"]
+      address_prefixes     = ["10.0.0.0/24"],
+      service_endpoints    = ["Microsoft.KeyVault"]
     }
   }
 }
