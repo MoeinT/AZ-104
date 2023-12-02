@@ -25,3 +25,8 @@ variable "ip_address" {
   type      = string
   sensitive = true
 }
+
+variable "vm_private_ip" {
+  type      = string
+  sensitive = true
+}

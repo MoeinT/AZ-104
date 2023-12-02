@@ -26,6 +26,19 @@ resource "azurerm_key_vault" "AllKV" {
   sku_name                    = each.value.sku_name
   tags                        = can(each.value.tags) ? merge(local.DefaultTags, each.value.tags) : local.DefaultTags
 
+  # Access policies
+
+  dynamic "access_policy" {
+    for_each = can(each.value.access_policy) ? [1] : []
+    content {
+      tenant_id           = each.value.access_policy.tenant_id
+      object_id           = each.value.access_policy.object_id
+      key_permissions     = lookup(each.value.access_policy, "key_permissions", [])
+      secret_permissions  = lookup(each.value.access_policy, "secret_permissions", [])
+      storage_permissions = lookup(each.value.access_policy, "storage_permissions", [])
+    }
+  }
+
   dynamic "network_acls" {
     for_each = can(each.value.network_acls) ? [1] : [0]
     content {
