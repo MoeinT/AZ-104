@@ -22,6 +22,7 @@ resource "azurerm_network_interface" "NetInterface" {
     name                          = each.value.ip_configuration.name
     subnet_id                     = each.value.ip_configuration.subnet_id
     private_ip_address_allocation = each.value.ip_configuration.private_ip_address_allocation
-    public_ip_address_id          = each.value.ip_configuration.public_ip_address_id
+    public_ip_address_id          = lookup(each.value.ip_configuration, "public_ip_address_id", null)
+    private_ip_address            = lookup(each.value.ip_configuration, "private_ip_address", null)
   }
 }
