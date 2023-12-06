@@ -19,12 +19,6 @@ module "Subnets" {
       virtual_network_name = module.Vnets.vnet-name["Vnet-${var.env}"],
       address_prefixes     = ["10.0.0.0/24"],
       service_endpoints    = ["Microsoft.KeyVault"]
-    },
-    "SubNet-private-${var.env}" = {
-      resource_group_name  = module.Rg.rg-names["az-104-${var.env}"],
-      virtual_network_name = module.Vnets.vnet-name["Vnet-${var.env}"],
-      address_prefixes     = ["10.0.1.0/24"],
-      service_endpoints    = ["Microsoft.KeyVault"]
     }
   }
 }
@@ -33,9 +27,9 @@ module "Subnets" {
 module "NSGSubnetAttachment" {
   source = "../../CommonModules/NSGSubnetAssociation"
   properties = {
-    # "SubNet-NSG-${var.env}" = {
-    #   subnet_id                 = module.Subnets.subnet-id["SubNet-${var.env}"],
-    #   network_security_group_id = module.NSGs.nsg-id["subnet-nsg-${var.env}"]
-    # }
+    "SubNet-NSG-${var.env}" = {
+      subnet_id                 = module.Subnets.subnet-id["SubNet-public-${var.env}"],
+      network_security_group_id = module.NSGs.nsg-id["app-public-nsg-${var.env}"]
+    }
   }
 }

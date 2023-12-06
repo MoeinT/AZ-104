@@ -2,21 +2,21 @@
 module "WindowsVM" {
   source = "../../CommonModules/windowsVM"
   properties = {
-    "vm-public-${var.env}" = {
+    "vm-public-1-${var.env}" = {
       resource_group_name   = module.Rg.rg-names["az-104-${var.env}"],
       location              = module.Rg.rg-locations["az-104-${var.env}"],
       admin_username        = var.vm_admin_username,
       admin_password        = var.vm_admin_password,
-      size                  = "Standard_D2as_v4"
-      network_interface_ids = [module.NICs.nic-id["nic-vm-public-${var.env}"]]
+      size                  = "Standard_D2s_v3"
+      network_interface_ids = [module.NICs.nic-id["nic-vm-public-1-${var.env}"]]
     },
-    "vm-private-${var.env}" = {
+    "vm-public-2-${var.env}" = {
       resource_group_name   = module.Rg.rg-names["az-104-${var.env}"],
       location              = module.Rg.rg-locations["az-104-${var.env}"],
       admin_username        = var.vm_admin_username,
       admin_password        = var.vm_admin_password,
-      size                  = "Standard_D2as_v4"
-      network_interface_ids = [module.NICs.nic-id["nic-vm-private-${var.env}"]]
+      size                  = "Standard_D2s_v3"
+      network_interface_ids = [module.NICs.nic-id["nic-vm-public-2-${var.env}"]]
     }
   }
 }
