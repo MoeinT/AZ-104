@@ -22,6 +22,8 @@ resource "azurerm_windows_virtual_machine" "AppVm" {
   admin_username        = each.value.admin_username
   admin_password        = each.value.admin_password
   network_interface_ids = each.value.network_interface_ids
+  availability_set_id   = lookup(each.value, "availability_set_id", null)
+
 
   os_disk {
     caching              = "None"

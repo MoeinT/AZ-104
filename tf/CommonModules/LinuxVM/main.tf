@@ -20,6 +20,7 @@ resource "azurerm_linux_virtual_machine" "AppLinuxVm" {
   size                  = each.value.size
   admin_username        = each.value.admin_username
   network_interface_ids = each.value.network_interface_ids
+  availability_set_id   = lookup(each.value, "availability_set_id", null)
   # Optionally add an admin password
   admin_password = lookup(each.value, "admin_password", null)
   # When an admin_password is specified disable_password_authentication must be set to false
