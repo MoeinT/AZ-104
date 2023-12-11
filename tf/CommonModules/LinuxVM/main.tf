@@ -21,10 +21,16 @@ resource "azurerm_linux_virtual_machine" "AppLinuxVm" {
   admin_username        = each.value.admin_username
   network_interface_ids = each.value.network_interface_ids
   availability_set_id   = lookup(each.value, "availability_set_id", null)
+  custom_data           = lookup(each.value, "custom_data", null)
   # Optionally add an admin password
   admin_password = lookup(each.value, "admin_password", null)
   # When an admin_password is specified disable_password_authentication must be set to false
   disable_password_authentication = can(each.value.admin_password) ? false : true
+
+  # Optionally add boot diagnostics
+  boot_diagnostics {
+    storage_account_uri = can(each.value.boot_diagnostics.storage_account_uri) ? each.value.boot_diagnostics.storage_account_uri: null
+  }
 
   # Optionally add an ssh key
   dynamic "admin_ssh_key" {
