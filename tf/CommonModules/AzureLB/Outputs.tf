@@ -3,5 +3,9 @@ output "lb-ids" {
 }
 
 output "lb-frontendname" {
-  value = { for i, j in azurerm_lb.LBs : j.name => j.frontend_ip_configuration[0].name }
+  value = {
+    for key, value in azurerm_lb.LBs : key => {
+      for config in value.frontend_ip_configuration : config.name => config.name
+    }
+  }
 }

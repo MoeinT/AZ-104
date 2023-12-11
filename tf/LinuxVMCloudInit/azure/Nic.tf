@@ -3,23 +3,14 @@ module "NICs" {
   source = "../../CommonModules/NetworkInterface"
   properties = {
     # Nic VM
-    "nic-vm-public-1-${var.env}" = {
+    "nic-linuxvm-${var.env}" = {
       location            = module.Rg.rg-locations["az-104-${var.env}"],
       resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
       ip_configuration = {
         name                          = "internal",
         subnet_id                     = module.Subnets.subnet-id["SubNet-public-${var.env}"],
-        private_ip_address_allocation = "Dynamic"
-      }
-    },
-    # Nic with no public ip
-    "nic-vm-public-2-${var.env}" = {
-      location            = module.Rg.rg-locations["az-104-${var.env}"],
-      resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
-      ip_configuration = {
-        name                          = "internal",
-        subnet_id                     = module.Subnets.subnet-id["SubNet-public-${var.env}"],
-        private_ip_address_allocation = "Dynamic"
+        private_ip_address_allocation = "Dynamic",
+        public_ip_address_id          = module.publicIPs.publicIp-id["public-ip-vm-${var.env}"]
       }
     }
   }

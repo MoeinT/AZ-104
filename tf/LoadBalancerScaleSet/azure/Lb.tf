@@ -38,7 +38,7 @@ module "LBhealthProbe" {
   }
 }
 
-# Load Balancing Rules to forward incoming requests on port 80 (frontend port) to port 80 of the backend virtual machines (backend pool)
+# Load Balancing Rules to forward incoming requests on port 80 (frontend port) to port 80 of the backend VM scaleset
 module "LBRules" {
   source = "../../CommonModules/LBRule"
   properties = {

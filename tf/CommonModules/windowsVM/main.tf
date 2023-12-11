@@ -23,7 +23,12 @@ resource "azurerm_windows_virtual_machine" "AppVm" {
   admin_password        = each.value.admin_password
   network_interface_ids = each.value.network_interface_ids
   availability_set_id   = lookup(each.value, "availability_set_id", null)
+  custom_data           = lookup(each.value, "custom_data", null)
 
+  # Optionally add boot diagnostics
+  boot_diagnostics {
+    storage_account_uri = can(each.value.boot_diagnostics.storage_account_uri) ? each.value.boot_diagnostics.storage_account_uri: null
+  }
 
   os_disk {
     caching              = "None"
