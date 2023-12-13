@@ -29,7 +29,7 @@ resource "azurerm_linux_virtual_machine" "AppLinuxVm" {
 
   # Optionally add boot diagnostics
   boot_diagnostics {
-    storage_account_uri = can(each.value.boot_diagnostics.storage_account_uri) ? each.value.boot_diagnostics.storage_account_uri: null
+    storage_account_uri = can(each.value.boot_diagnostics.storage_account_uri) ? each.value.boot_diagnostics.storage_account_uri : null
   }
 
   # Optionally add an ssh key

@@ -27,7 +27,7 @@ resource "azurerm_windows_virtual_machine" "AppVm" {
 
   # Optionally add boot diagnostics
   boot_diagnostics {
-    storage_account_uri = can(each.value.boot_diagnostics.storage_account_uri) ? each.value.boot_diagnostics.storage_account_uri: null
+    storage_account_uri = can(each.value.boot_diagnostics.storage_account_uri) ? each.value.boot_diagnostics.storage_account_uri : null
   }
 
   os_disk {
