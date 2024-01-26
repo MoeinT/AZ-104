@@ -16,68 +16,78 @@ module "ApplicationGateway" {
       }
 
       frontend_ip_configuration = {
-        "frontend-ip-${var.env}" = {
+        (local.frontend_ip_configuration_name) = {
           public_ip_address_id = module.publicIPs.publicIp-id["publicip-appgateway-${var.env}"]
         },
       },
 
-        backend_address_pool = {
-          "images-backendpool-${var.env}" = {
-          },
-          "videos-backendpool-${var.env}" = {
-          },
-        }
+      backend_address_pool = {
+        (local.backend_address_pool_name_images) = {
+        },
+        (local.backend_address_pool_name_videos) = {
+        },
+      }
 
       frontend_port = {
-        "frontend-port-${var.env}" = {
+        (local.frontend_port_name) = {
           port = 80
         }
       }
 
-        backend_http_settings = {
-          "images-target-${var.env}" = {
-            cookie_based_affinity = "Disabled"
-            path                  = "/images/*"
-            port                  = 80
-            protocol              = "Http"
-            request_timeout       = 60
-          },
-          "videos-target-${var.env}" = {
-            cookie_based_affinity = "Disabled"
-            path                  = "/videos/*"
-            port                  = 80
-            protocol              = "Http"
-            request_timeout       = 60
-          },
-        },
-
-        http_listener = {
-          "http-listener-images-${var.env}" = {
-            frontend_ip_configuration_name = "frontend-ip-${var.env}"
-            frontend_port_name             = "frontend-port-${var.env}"
-            protocol                       = "Http"
-          },
-          "http-listener-videos-${var.env}" = {
-            frontend_ip_configuration_name = "frontend-ip-${var.env}"
-            frontend_port_name             = "frontend-port-${var.env}"
-            protocol                       = "Http"
-          },
+      http_listener = {
+        (local.listener_name) = {
+          frontend_ip_configuration_name = local.frontend_ip_configuration_name
+          frontend_port_name             = local.frontend_port_name
+          protocol                       = "Http"
         }
+      }
+
+      backend_http_settings = {
+        (local.http_setting_name_images) = {
+          cookie_based_affinity = "Disabled"
+          port                  = 80
+          protocol              = "Http"
+          request_timeout       = 60
+        },
+        (local.http_setting_name_videos) = {
+          cookie_based_affinity = "Disabled"
+          port                  = 80
+          protocol              = "Http"
+          request_timeout       = 60
+        },
+      }
 
       request_routing_rule = {
-        "request-routing-rule-images-${var.env}" = {
-          priority                   = 9
-          rule_type                  = "PathBasedRouting"
-          http_listener_name         = "http-listener-images-${var.env}"
-          backend_address_pool_name  = "images-backendpool-${var.env}"
-          backend_http_settings_name = "images-target-${var.env}"
-        },
-        "request-routing-rule-videos-${var.env}" = {
-          priority                   = 10
-          rule_type                  = "PathBasedRouting"
-          http_listener_name         = "http-listener-videos-${var.env}"
-          backend_address_pool_name  = "videos-backendpool-${var.env}"
-          backend_http_settings_name = "videos-target-${var.env}"
+        (local.request_routing_rule) = {
+          priority           = 9
+          rule_type          = "PathBasedRouting"
+          http_listener_name = local.listener_name
+          url_path_map_name  = local.url_path_map_name
+        }
+      }
+
+      url_path_map = {
+        name                                = local.url_path_map_name
+        default_redirect_configuration_name = local.redirect_configuration_name
+        path_rules = {
+          "images-rule" = {
+            paths                      = ["/images/*"]
+            backend_address_pool_name  = local.backend_address_pool_name_images
+            backend_http_settings_name = local.http_setting_name_images
+          },
+          "videos-rule" = {
+            paths                      = ["/videos/*"]
+            backend_address_pool_name  = local.backend_address_pool_name_videos
+            backend_http_settings_name = local.http_setting_name_videos
+          }
+        }
+      }
+
+      redirect_configuration = {
+        (local.redirect_configuration_name) = {
+          redirect_type = "Permanent"
+          # target_listener_name = "http-listener-${var.env}"
+          target_url = "https://stacksimplify.com/azure-aks/azure-kubernetes-service-introduction/"
         }
       }
     },

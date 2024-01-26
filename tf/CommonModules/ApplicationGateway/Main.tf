@@ -95,9 +95,34 @@ resource "azurerm_application_gateway" "network" {
       name                       = request_routing_rule.key
       priority                   = lookup(request_routing_rule.value, "priority", null)
       rule_type                  = request_routing_rule.value.rule_type
-      http_listener_name         = request_routing_rule.value.http_listener_name
-      backend_address_pool_name  = request_routing_rule.value.backend_address_pool_name
-      backend_http_settings_name = request_routing_rule.value.backend_http_settings_name
+      http_listener_name         = lookup(request_routing_rule.value, "http_listener_name", null)
+      backend_address_pool_name  = lookup(request_routing_rule.value, "backend_address_pool_name", null)
+      backend_http_settings_name = lookup(request_routing_rule.value, "backend_http_settings_name", null)
+      url_path_map_name          = lookup(request_routing_rule.value, "url_path_map_name", null)
+    }
+  }
+
+  dynamic "redirect_configuration" {
+    for_each = each.value.redirect_configuration
+    content {
+      name                 = redirect_configuration.key
+      redirect_type        = redirect_configuration.value.redirect_type
+      target_listener_name = lookup(redirect_configuration.value, "target_listener_name", null)
+      target_url           = lookup(redirect_configuration.value, "target_url", null)
+    }
+  }
+
+  url_path_map {
+    name                                = each.value.url_path_map.name
+    default_redirect_configuration_name = each.value.url_path_map.default_redirect_configuration_name
+    dynamic "path_rule" {
+      for_each = each.value.url_path_map.path_rules
+      content {
+        name                       = path_rule.key
+        paths                      = path_rule.value.paths
+        backend_address_pool_name  = path_rule.value.backend_address_pool_name
+        backend_http_settings_name = path_rule.value.backend_http_settings_name
+      }
     }
   }
 }

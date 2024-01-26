@@ -15,34 +15,25 @@ module "AvailabilitySets" {
 module "WindowsVM" {
   source = "../../CommonModules/windowsVM"
   properties = {
-    "images-vm-${var.env}" = {
+    "vm-vnet1-${var.env}" = {
       resource_group_name   = module.Rg.rg-names["az-104-${var.env}"],
       location              = module.Rg.rg-locations["az-104-${var.env}"],
       admin_username        = var.vm_admin_username,
       admin_password        = var.vm_admin_password,
       size                  = "Standard_D2s_v3"
-      network_interface_ids = [module.NICs.nic-id["nic-windows-${var.env}"]]
-      availability_set_id   = module.AvailabilitySets.availability-set-id["vm-availabilityset-${var.env}"]
-      boot_diagnostics      = {}
-    }
-  }
-}
-
-# Define a Linux Virtual Machine 
-module "LinuxVM" {
-  source = "../../CommonModules/LinuxVM"
-  properties = {
-    # using password for authentication
-    "video-vm-${var.env}" = {
+      network_interface_ids = [module.NICs.nic-id["nic-vnet1-${var.env}"]]
+      # availability_set_id   = module.AvailabilitySets.availability-set-id["vm-availabilityset-${var.env}"]
+      boot_diagnostics = {}
+    },
+    "vm-vnet2-${var.env}" = {
       resource_group_name   = module.Rg.rg-names["az-104-${var.env}"],
       location              = module.Rg.rg-locations["az-104-${var.env}"],
-      size                  = var.vm_size
-      admin_username        = var.vm_admin_username
-      admin_password        = var.vm_admin_password
-      network_interface_ids = [module.NICs.nic-id["nic-linux-${var.env}"]]
-      custom_data           = data.template_cloudinit_config.cloud_config_linux.rendered
-      availability_set_id   = module.AvailabilitySets.availability-set-id["vm-availabilityset-${var.env}"]
-      boot_diagnostics      = {}
+      admin_username        = var.vm_admin_username,
+      admin_password        = var.vm_admin_password,
+      size                  = "Standard_D2s_v3"
+      network_interface_ids = [module.NICs.nic-id["nic-vnet2-${var.env}"]]
+      # availability_set_id   = module.AvailabilitySets.availability-set-id["vm-availabilityset-${var.env}"]
+      boot_diagnostics = {}
     }
   }
 }
