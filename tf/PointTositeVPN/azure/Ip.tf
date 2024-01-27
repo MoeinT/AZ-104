@@ -2,11 +2,11 @@
 module "publicIPs" {
   source = "../../CommonModules/PublicIp"
   properties = {
-    "public-ip-vm-${var.env}" = {
+    "Vnet-gateway-ip-${var.env}" = {
       location            = module.Rg.rg-locations["az-104-${var.env}"],
       resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
-      allocation_method   = "Static",
+      allocation_method   = "Dynamic",
       sku                 = "Basic"
-    },
+    }
   }
 }

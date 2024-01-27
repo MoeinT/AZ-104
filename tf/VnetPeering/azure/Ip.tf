@@ -2,13 +2,13 @@
 module "publicIPs" {
   source = "../../CommonModules/PublicIp"
   properties = {
-    "publicip-bastion-${var.env}" = {
+    "publicip-vm-Vnet1-${var.env}" = {
       location            = module.Rg.rg-locations["az-104-${var.env}"],
       resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
       allocation_method   = "Static",
       sku                 = "Standard"
     },
-    "publicip-appgateway-${var.env}" = {
+    "publicip-bastion-vnet1-${var.env}" = {
       location            = module.Rg.rg-locations["az-104-${var.env}"],
       resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
       allocation_method   = "Static",

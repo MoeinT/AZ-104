@@ -25,7 +25,7 @@ module "WindowsVM" {
       availability_set_id   = module.AvailabilitySets.availability-set-id["vm-availabilityset-${var.env}"]
       boot_diagnostics      = {}
     },
-    "video-wm-${var.env}" = {
+    "video-vm-${var.env}" = {
       resource_group_name   = module.Rg.rg-names["az-104-${var.env}"],
       location              = module.Rg.rg-locations["az-104-${var.env}"],
       admin_username        = var.vm_admin_username,
