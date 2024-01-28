@@ -71,6 +71,20 @@ We cannot associate a custom domain name to any of our resources within a subscr
 ### Azure DNS Zone
 An Azure DNS zone hosts the DNS records for a domain. To begin hosting your domain in Azure DNS, you need to create a DNS zone for your domain name. Each DNS record for your domain is then created inside your DNS zone.
 
+## Virtual Network Peering
+Vnet peering allows communications between Vnets in the same (regional Vnet peering) or different (global Vnet peering) regions. It allows communications between resources in the peered networks.
+
+One common scnerario is to cofigure an Azure VPN Gateway in a peered network and use that network as a central hub for other peered Vnets. This architecture allows peered Vnets to share reqources within the central hub. For example, we can configure an Azure VPN Gateway within the central hub as a transit point. With this central Vnet we won't have to deploy that VNP Gateway in every single peered network.
+
+### Extend peering
+There are three methods in extending Vnet peerring: 
+- **UDRs -** By configuring user-defined routes, you can specify how traffic should flow between VNets or between subnets within the same VNet. This can include directing traffic through specific gateways or services to reach its destination. In the context of extending peering capabilities, UDRs can be used to direct traffic between VNets that are not directly peered.
+
+- **Hub and Spoke Networks -** The hub and spoke architecture is a network topology where multiple smaller networks (spokes) are connected to a central, larger network (hub). In the context of Azure VNets, this architecture typically involves one central VNet (the hub) connected to multiple VNets (the spokes). By setting up a hub VNet and establishing peering connections between the hub VNet and each spoke VNet (A, B, and C), you create a centralized point for communication between all VNets involved. This allows communication between any spoke VNet and the hub VNet. However, direct communication between spoke VNets (e.g., A to C) typically requires traffic to route through the hub VNet.
+
+- **Service chaining -** Service chaining involves the sequential forwarding of network traffic through a series of network services or appliances. In Azure, this might involve routing traffic through various Azure services, such as firewalls, load balancers, or other network appliances. By configuring service chaining, you can define a path for network traffic to follow as it moves between different VNets or resources within the same VNet. This allows you to apply specific network services or policies to the traffic as it traverses the network.
+
+
 
 # Deploy and manage Azure Compute Resources
 There are a variety of Azure Compote Resources available in Azure. We'll go through all of them one by one. We'll also provide Terraform configurations to deploy that resource into Azure.
