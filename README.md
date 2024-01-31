@@ -74,7 +74,7 @@ An Azure DNS zone hosts the DNS records for a domain. To begin hosting your doma
 ## Virtual Network Peering
 Vnet peering allows communications between Vnets in the same (regional Vnet peering) or different (global Vnet peering) regions. It allows communications between resources in the peered networks.
 
-One common scnerario is to cofigure an Azure VPN Gateway in a peered network and use that network as a central hub for other peered Vnets. This architecture allows peered Vnets to share reqources within the central hub. For example, we can configure an Azure VPN Gateway within the central hub as a transit point. With this central Vnet we won't have to deploy that VNP Gateway in every single peered network.
+One common scnerario is to cofigure an Azure VPN Gateway in a peered network and use that network as a central hub for other peered Vnets. This architecture allows peered Vnets to share resources within the central hub. For example, we can configure an Azure VPN Gateway within the central hub as a transit point. With this central Vnet we won't have to deploy that VNP Gateway in every single peered network.
 
 ### Extend peering
 There are three methods in extending Vnet peerring: 
@@ -84,7 +84,20 @@ There are three methods in extending Vnet peerring:
 
 - **Service chaining -** Service chaining involves the sequential forwarding of network traffic through a series of network services or appliances. In Azure, this might involve routing traffic through various Azure services, such as firewalls, load balancers, or other network appliances. By configuring service chaining, you can define a path for network traffic to follow as it moves between different VNets or resources within the same VNet. This allows you to apply specific network services or policies to the traffic as it traverses the network.
 
+## Configure network routing and endpoints
+It's possible to use network routes to control the flow of traffic through a network. Azure virtual networking provides capabilities to customize the network routes, establish private endpoints, and access private links.
 
+### System routes
+Azure uses system routes to direct traffic between virtual machines, on-premise networks, and the internet. The information about system routes are recorded in a route table. 
+
+**Things to know about system routes** 
+- System routes can be used to control traffic between virtual machines that are in the same subnet, or different subnets but the same virtual network, and between virtual machines and the internet.
+- A route table contains a set of rules about how traffic should be forwarded within a Vnet. Each route table is associated with a subnet. When a packet is leaving a subnet, it gets matched against the associated route table, and if it's not found there, it'll be dopped. 
+
+### User defined routes
+User defined routes provide the capability to define custom routes to direct traffic in a Virtual Network. Instead of solely relying of Azure's automatic routing, we can specify a next hop target based on our business requirements. So, it provides a more granular control over how traffic should be routed between different components of the infrastructure. 
+
+**Business scenario -** Network Virtual Appliance (NVA) is a virtual machine that performs certain network functions like routing, firewalling, or WAN optimization. Imagine a scnerio where we'd like to forward traffic between a VM at the frondend and a VM at the backend; however, we'd like to perform certain network functions before the traffic reaches the destination; in this case, we can take advantage of a user-defined route to make sure the traffic flows through a VNA as a hop target before reaching the target VM.
 
 # Deploy and manage Azure Compute Resources
 There are a variety of Azure Compote Resources available in Azure. We'll go through all of them one by one. We'll also provide Terraform configurations to deploy that resource into Azure.
