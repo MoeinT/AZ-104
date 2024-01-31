@@ -15,5 +15,5 @@ In this architecture, we have a Virtual Network (VNet) with three subnets: SubNe
 In our scenario, we have installed an internet service on appvmB and need to allow access from appvmA. However, instead of a direct communication path, we want the traffic to pass through appvmCentral for additional networking functions or inspection.
 
 <p align="center">
-  <img width="500" height="300" src=./assets/UserDefinedRoutes.png>
+  <img width="500" height="400" src=./assets/UserDefinedRoutes.png>
 </p>
