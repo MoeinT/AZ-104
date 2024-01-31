@@ -13,10 +13,11 @@ provider "azurerm" {
 
 
 resource "azurerm_network_interface" "NetInterface" {
-  for_each            = var.properties
-  name                = each.key
-  location            = each.value.location
-  resource_group_name = each.value.resource_group_name
+  for_each             = var.properties
+  name                 = each.key
+  location             = each.value.location
+  resource_group_name  = each.value.resource_group_name
+  enable_ip_forwarding = lookup(each.value, "enable_ip_forwarding", false)
 
   ip_configuration {
     name                          = each.value.ip_configuration.name
