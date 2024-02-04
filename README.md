@@ -99,6 +99,7 @@ User defined routes provide the capability to define custom routes to direct tra
 
 **Business scenario -** Network Virtual Appliance (NVA) is a virtual machine that performs certain network functions like routing, firewalling, or WAN optimization. Imagine a scnerio where we'd like to forward traffic between a VM at the frondend and a VM at the backend; however, we'd like to perform certain network functions before the traffic reaches the destination; in this case, we can take advantage of a user-defined route to make sure the traffic flows through a VNA as a hop target before reaching the target VM.
 
+
 # Deploy and manage Azure Compute Resources
 There are a variety of Azure Compote Resources available in Azure. We'll go through all of them one by one. We'll also provide Terraform configurations to deploy that resource into Azure.
 
@@ -203,11 +204,22 @@ For such scenarios where there are a high number of Azure Vnets and a high numbe
 - Deploy a virtual Hub, which is a Vnet used for the Azure Virtual WAN.
 - Next step would be to connect our Vnets to the virtual hub.
 
+### Network watcher
+Network watcher enables you to monitor and repair the network health of IaaS services, such as Virtual Machines, VPN Gateways, Load Balancers etc. It provides 3 important capabilities: Monitoring, Network diagnostic tools, and Traffic. See all the [documentation](https://learn.microsoft.com/en-us/azure/network-watcher/network-watcher-overview#monitoring). 
 
+**Monitoring**
+- Topology - Provides a visualization of the entire network for understanding network configurations. Provides an interactive space for understanding the resources and their relationships. 
+- Connectioin Monitor - It helps you understand the network performance between different endpoints in your network infrastructure. It monitors the connections on a continuous basis, as opposed to connection troubleshoot, which monitors at a point in time. 
 
+**Network diagnostic tools**
+- Next hop - This helps you to detect routing issues and to understand whether a packet of data is reaching its destination. It provides information about the next hop type, IP address, and the route table ID for a destination IP address.
+- Ip flow verify - This shows traffic filtering issues at the virtual machine level. This allows to see if a packet is allowed or denied to or from a virtual machine. If a packet is being denied due to a security group, it shows which rule is denying that packet.
+- Connection troubleshoot - Connection troubleshoot enables you to test a connection between a virtual machine, a virtual machine scale set, an application gateway, or a Bastion host and a virtual machine, an FQDN, a URI, or an IPv4 address. The test returns similar information returned when using the connection monitor capability, but tests the connection at a point in time instead of monitoring it over time.
+- Effective security rules - It allows you to view the effective security rules applied to a network interface. It shows you all security rules applied to the network interface, the subnet the network interface is in, and the aggregate of both.
+- Packet capture - It allows you to create packet capture sessions to track traffic to and from a virtual machine or virtual machine scale set. 
+- VPN troubleshoot - Allows you to troubleshoot virtual network gateways and their connections. 
+- NSG diagnostics - Similar to If Flow Verify, but with more functionalities. It provides information about whether a packet of data is allowed to denied to or from an IP address, IP prefix, or service tag. 
 
-
-
-
-
-
+**Traffic** Network Watcher offers two traffic tools that help you log and visualize network traffic: Flow logs, and Traffic analytics. 
+- Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network.
+- Traffic Analytics - Provides rich visualizations of flow logs data
