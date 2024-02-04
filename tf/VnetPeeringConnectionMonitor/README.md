@@ -41,5 +41,5 @@ Terraform modules played a central role in organizing and structuring our deploy
 By modularizing our Terraform configuration, we ensured a clear separation of concerns and enhanced maintainability. Each module represented a distinct component of our architecture, making it easier to understand, update, and extend our infrastructure as needed. Below we can see the architecture diagram used in this exercise: 
 
 <p align="center">
-  <img width="450" height="300" src=./assets/ConnectionMonitor.png>
+  <img width="450" height="350" src=./assets/ConnectionMonitor.png>
 </p>
