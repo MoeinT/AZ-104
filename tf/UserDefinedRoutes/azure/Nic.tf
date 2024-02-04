@@ -10,7 +10,7 @@ module "NICs" {
         name                          = "internal",
         subnet_id                     = module.Subnets.subnet-id["SubNetA-${var.env}"],
         private_ip_address_allocation = "Dynamic",
-        public_ip_address_id = module.publicIPs.publicIp-id["publicip-VmA-${var.env}"]
+        public_ip_address_id          = module.publicIPs.publicIp-id["publicip-VmA-${var.env}"]
       }
     },
     "nicB-${var.env}" = {

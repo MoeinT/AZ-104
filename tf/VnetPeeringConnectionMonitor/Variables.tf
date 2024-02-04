@@ -25,27 +25,3 @@ variable "vm_admin_password" {
     error_message = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
   }
 }
-
-variable "vm_size" {
-  type    = string
-  default = "Standard_D2s_v3"
-  validation {
-    condition     = contains(["Standard_D2s_v3", "Standard_D4s_v3", "Standard_D8s_v3", "Standard_D16s_v3"], var.vm_size)
-    error_message = "Invalid VM size. Allowed sizes are: ${join(", ", ["Standard_D2s_v3", "Standard_D4s_v3", "Standard_D8s_v3", "Standard_D16s_v3"])}"
-  }
-}
-
-variable "azuread_password" {
-  type      = string
-  sensitive = true
-}
-
-variable "ip_address" {
-  type      = string
-  sensitive = true
-}
-
-variable "vm_private_ip" {
-  type      = string
-  sensitive = true
-}

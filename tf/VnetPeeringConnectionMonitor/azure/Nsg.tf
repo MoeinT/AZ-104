@@ -1,4 +1,4 @@
-# Security Group for the VM Network Interface
+# Network Security Group
 module "NSGs" {
   source = "../../CommonModules/NetworkSecurityGroup"
   properties = {
@@ -13,19 +13,7 @@ module "NSGs" {
 module "NetworkSecurityRules" {
   source = "../../CommonModules/NetworkSecurityRule"
   properties = {
-    # Allow inbound traffic through port 80
-    "AllowHTTP" = {
-      priority                    = 600
-      direction                   = "Inbound"
-      access                      = "Allow"
-      protocol                    = "*"
-      source_port_range           = "*"
-      destination_port_range      = "80"
-      source_address_prefix       = "*"
-      destination_address_prefix  = "*"
-      resource_group_name         = module.Rg.rg-names["az-104-${var.env}"]
-      network_security_group_name = module.NSGs.nsg-name["app-public-nsg-${var.env}"]
-    },
+    # To be able to log into the VMs
     "AllowRDP" = {
       priority                    = 500
       direction                   = "Inbound"

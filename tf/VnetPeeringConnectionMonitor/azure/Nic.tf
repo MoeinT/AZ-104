@@ -3,23 +3,24 @@ module "NICs" {
   source = "../../CommonModules/NetworkInterface"
   properties = {
     # Nic VM
-    "nic-vnet1-${var.env}" = {
+    "source-vm-nic-${var.env}" = {
       location            = module.Rg.rg-locations["az-104-${var.env}"],
       resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
       ip_configuration = {
         name                          = "internal",
-        subnet_id                     = module.Subnets.subnet-id["SubNet-vnet-1-${var.env}"],
+        subnet_id                     = module.Subnets.subnet-id["source-subnet-${var.env}"],
         private_ip_address_allocation = "Dynamic"
-        public_ip_address_id          = module.publicIPs.publicIp-id["publicip-vm-Vnet1-${var.env}"]
+        public_ip_address_id          = module.publicIPs.publicIp-id["publicip-source-vm-${var.env}"]
       }
     },
-    "nic-vnet2-${var.env}" = {
+    "target-vm-nic-${var.env}" = {
       location            = module.Rg.rg-locations["az-104-${var.env}"],
       resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
       ip_configuration = {
         name                          = "internal",
-        subnet_id                     = module.Subnets.subnet-id["SubNet-vnet-2-${var.env}"],
-        private_ip_address_allocation = "Dynamic"
+        subnet_id                     = module.Subnets.subnet-id["target-subnet-${var.env}"],
+        private_ip_address_allocation = "Dynamic",
+        public_ip_address_id          = module.publicIPs.publicIp-id["publicip-target-vm-${var.env}"]
       }
     }
   }

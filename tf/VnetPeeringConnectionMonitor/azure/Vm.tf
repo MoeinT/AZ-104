@@ -15,23 +15,23 @@ module "AvailabilitySets" {
 module "WindowsVM" {
   source = "../../CommonModules/windowsVM"
   properties = {
-    "vm-vnet1-${var.env}" = {
+    "source-vm-${var.env}" = {
       resource_group_name   = module.Rg.rg-names["az-104-${var.env}"],
       location              = module.Rg.rg-locations["az-104-${var.env}"],
       admin_username        = var.vm_admin_username,
       admin_password        = var.vm_admin_password,
       size                  = "Standard_D2s_v3"
-      network_interface_ids = [module.NICs.nic-id["nic-vnet1-${var.env}"]]
-      # availability_set_id   = module.AvailabilitySets.availability-set-id["vm-availabilityset-${var.env}"]
-      boot_diagnostics = {}
+      network_interface_ids = [module.NICs.nic-id["source-vm-nic-${var.env}"]]
+      availability_set_id   = module.AvailabilitySets.availability-set-id["vm-availabilityset-${var.env}"]
+      boot_diagnostics      = {}
     },
-    "vm-vnet2-${var.env}" = {
+    "target-vm-${var.env}" = {
       resource_group_name   = module.Rg.rg-names["az-104-${var.env}"],
       location              = module.Rg.rg-locations["az-104-${var.env}"],
       admin_username        = var.vm_admin_username,
       admin_password        = var.vm_admin_password,
       size                  = "Standard_D2s_v3"
-      network_interface_ids = [module.NICs.nic-id["nic-vnet2-${var.env}"]]
+      network_interface_ids = [module.NICs.nic-id["target-vm-nic-${var.env}"]]
       # availability_set_id   = module.AvailabilitySets.availability-set-id["vm-availabilityset-${var.env}"]
       boot_diagnostics = {}
     }
