@@ -65,3 +65,20 @@ module "ConnectionMonitor" {
     }
   }
 }
+
+# For logging all traffic through a network security group attached to the target subnet
+module "NetworkWatherFlowLog" {
+  source = "../../CommonModules/AzureNetworkFlowLog"
+  properties = {
+    "nsg-flowlog-${var.env}" = {
+      network_watcher_name      = module.NetworkWatcher.networkwatcher-name["appvm-network-watcher-${var.env}"],
+      resource_group_name       = module.Rg.rg-names["az-104-${var.env}"],
+      network_security_group_id = module.NSGs.nsg-id["app-public-nsg-${var.env}"]
+      storage_account_id        = module.StorageAccount.sa-id["saflowlog${var.env}"],
+      retention_policy = {
+        enabled = true,
+        days    = 7
+      }
+    }
+  }
+}

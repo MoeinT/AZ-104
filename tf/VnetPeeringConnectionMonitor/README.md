@@ -22,7 +22,8 @@ Virtual Network Peering offers several benefits:
 
 **Cost Efficiency -** VNet peering is a cost-effective solution for connecting resources within Azure as it avoids the additional expenses associated with data transfer or VPN gateways.
 
-# Network Watcher and Connection Monitor
+# Network Watcher
+## Connection Monitor
 
 To monitor the connectivity between virtual machines across the peered virtual networks, we deployed Azure Network Watcher along with Connection Monitor.
 
@@ -31,6 +32,9 @@ Azure Network Watcher provides tools to monitor, diagnose, and gain insights int
 Connection Monitor, a feature of Azure Network Watcher, continuously monitors connectivity between specified source and destination virtual machines. In our scenario, Connection Monitor played a crucial role in verifying the successful establishment of connectivity between the virtual machines across the peered virtual networks.
 
 By leveraging Network Watcher and Connection Monitor, we were able to ensure the reliability and stability of the communication between the virtual machines deployed in the source-Vnet and target-Vnet, thus enhancing the overall performance and resilience of our Azure network architecture.
+
+## Flow Log
+In our Azure network architecture, we've incorporated Flow Logs as part of our network security monitoring strategy. Flow Logs provide detailed visibility into the traffic flowing through our network security groups (NSGs) by capturing network activity logs. Flow Logs capture information about the network traffic that traverses the NSGs associated with our Azure virtual networks. These logs include details such as source and destination IP addresses, ports, protocols, and traffic direction (inbound or outbound). Flow data is sent to Azure Storage from where you can access it and export it to any visualization tool, security information and event management (SIEM) solution, or intrusion detection system (IDS) of your choice.
 
 # Infrastructure as Code with Terraform
 As our infrastructure requirements evolve, Terraform empowers us to scale our network resources seamlessly. Adding additional subnets, virtual machines, or peering connections can be achieved by simply updating our Terraform configuration files. Terraform also facilitated the deployment of Azure Network Watcher and Connection Monitor as integral parts of our network monitoring strategy.
