@@ -52,7 +52,7 @@ resource "azurerm_network_connection_monitor" "ConnectionMonitor" {
     dynamic "tcp_configuration" {
       for_each = can(each.value.test_configuration.tcp_configuration) ? [1] : []
       content {
-        port   = each.value.test_configuration.tcp_configuration.port
+        port = each.value.test_configuration.tcp_configuration.port
       }
     }
   }

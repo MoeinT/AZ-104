@@ -12,7 +12,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_virtual_machine_extension" "AllExtensions" {
-  for_each = var.properties
+  for_each                   = var.properties
   name                       = can(each.value.name) ? each.value.name : each.key
   virtual_machine_id         = each.value.virtual_machine_id
   publisher                  = each.value.publisher

@@ -212,7 +212,7 @@ Network watcher enables you to monitor and repair the network health of IaaS ser
 - Connectioin Monitor - It helps you understand the network performance between different endpoints in your network infrastructure. It monitors the connections on a continuous basis, as opposed to connection troubleshoot, which monitors at a point in time. 
 
 **Network diagnostic tools**
-- Next hop - This helps you to detect routing issues and to understand whether a packet of data is reaching its destination. It provides information about the next hop type, IP address, and the route table ID for a destination IP address.
+- Next hop - This helps you to detect routing issues and to understand whether a packet of data is reaching its destination. It provides information about the next hop type, IP address, and the route table ID for a destination IP address. This feature is quite useful when we have a user-defined route in our architecture. If there's an intermediate step before the traffic reaches its destination i.e., a virtual network appliance, then the next hop feature within the Network Watcher is useful to verify the next hop.
 - Ip flow verify - This shows traffic filtering issues at the virtual machine level. This allows to see if a packet is allowed or denied to or from a virtual machine. If a packet is being denied due to a security group, it shows which rule is denying that packet.
 - Connection troubleshoot - Connection troubleshoot enables you to test a connection between a virtual machine, a virtual machine scale set, an application gateway, or a Bastion host and a virtual machine, an FQDN, a URI, or an IPv4 address. The test returns similar information returned when using the connection monitor capability, but tests the connection at a point in time instead of monitoring it over time.
 - Effective security rules - It allows you to view the effective security rules applied to a network interface. It shows you all security rules applied to the network interface, the subnet the network interface is in, and the aggregate of both.
@@ -221,5 +221,5 @@ Network watcher enables you to monitor and repair the network health of IaaS ser
 - NSG diagnostics - Similar to If Flow Verify, but with more functionalities. It provides information about whether a packet of data is allowed to denied to or from an IP address, IP prefix, or service tag. 
 
 **Traffic** Network Watcher offers two traffic tools that help you log and visualize network traffic: Flow logs, and Traffic analytics. 
-- Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network.
+- Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log. 
 - Traffic Analytics - Provides rich visualizations of flow logs data
