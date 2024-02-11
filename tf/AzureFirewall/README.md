@@ -19,5 +19,5 @@ To enforce all outbound traffic from the VM through Azure Firewall, we implement
 # Infrastructure as Code with Terraform
 Our entire Azure network setup, including the virtual network, subnets, Azure Firewall, VM, policy configurations, and user-defined route, was provisioned using Infrastructure as Code (IaC) principles with Terraform. This approach ensures consistency, scalability, and ease of management in our deployment process.
 <p align="center">
-  <img width="500" height="400" src=./assets/AzureFirewall.png>
+  <img width="520" height="380" src=./assets/AzureFirewall.png>
 </p>
