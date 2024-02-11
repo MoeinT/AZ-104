@@ -223,3 +223,7 @@ Network watcher enables you to monitor and repair the network health of IaaS ser
 **Traffic** Network Watcher offers two traffic tools that help you log and visualize network traffic: Flow logs, and Traffic analytics. 
 - Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log. 
 - Traffic Analytics - Provides rich visualizations of flow logs data
+
+
+### Azure Firewall
+The purpose of Azure firewall is to ensure outbound and inbound communications to the internet are safe. For this, we need to make sure it has a public ip address to have an interface to the internet. 
