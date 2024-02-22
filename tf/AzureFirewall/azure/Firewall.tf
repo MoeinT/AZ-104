@@ -37,13 +37,13 @@ module "AzureFirewallPolicyCollectionGroup" {
     "appvm-${var.env}" = {
       # The policy that this rule belongs to
       firewall_policy_id = module.FirewallPolicies.firewallpolicy-id["app-firewallpolicy-${var.env}"]
-      priority           = 100,
+      priority           = 102,
       # The Azure Firewall and Virtual Machine resources should be deployed first
-      depends_on = [module.WindowsVM, module.Firewalls]
+      depends_on = [module.Firewalls]
       # A NAT rule to allow RDP connection to the VM
       nat_rule_collection = {
         "appvm-rule-${var.env}" = {
-          priority = 100
+          priority = 102
           rule = {
             name = "app-vm-natrule-${var.env}"
             # The IP address of the machine using RDP
