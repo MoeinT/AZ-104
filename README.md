@@ -99,9 +99,65 @@ User defined routes provide the capability to define custom routes to direct tra
 
 **Business scenario -** Network Virtual Appliance (NVA) is a virtual machine that performs certain network functions like routing, firewalling, or WAN optimization. Imagine a scnerio where we'd like to forward traffic between a VM at the frondend and a VM at the backend; however, we'd like to perform certain network functions before the traffic reaches the destination; in this case, we can take advantage of a user-defined route to make sure the traffic flows through a VNA as a hop target before reaching the target VM.
 
+### Service Endpoints
+Virtual Network service endpoints provide direct and secure connectivity to Azure services over an optimized route over Azure backbone network. Endpoints allow you to secure your critical Azure service resources to only your virtual networks. Service Endpoints enables private IP addresses in the VNet to reach the endpoint of an Azure service without needing a public IP address on the VNet.
+### Private Link
+An Azure private link is an Azure service that allows you to access an Azure service from a Vnet through a Private Endpoint.
+#### Things to know about Azure Private Link
+- Private endpoint is an interface that allows you to connect privately and securely to an Azure service through an Azure Private Link. A private endpoint is a private IP address within your virtual network that serves as an entry point for accessing specific Azure PaaS services.
+- When you create a private endpoint for a service, the traffic between your virtual network and the service traverses over the Microsoft backbone network, ensuring that the data never goes over the public internet.
+#### Difference between a Service Endpoint and a Private Endpoint
+service endpoints extend your virtual network's private address space to Azure services. With service endpoints, access to the Azure service is controlled by the service's firewall rules and virtual network rules. Service endpoints are useful for Azure platform services such as Azure Storage, Azure SQL Database, Azure Cosmos DB, etc., where we'd like to restrict their access to only azure virtual network resources. Private endpoints provide secure and private connectivity to specific Azure services by creating an interface in your virtual network. Private endpoints are suitable for scenarios where you need more secure and private access to Azure services, such as accessing Azure Storage or Azure SQL Database from within your virtual network without going over the public internet.
+
+## Configure Azure Load Balancer
+See the learning path to review this section.
+
+## Configure Azure Application Gateway
+See the learning path to review this section. Review the difference between the load balancer and Azure Application Gateway.
+
+## Design an IP addressing schema for your Azure deployment
+When migrating to the cloud, you need to plan private and public IP addresses so you won't run out of available IP addresses and capacity for future growth in the future. A good IP address scheme provides flexibility, room for growth, and integration with on-premise networks. 
+### Integrate Azure with on-premises networks
+ Azure networks and on-premises networks should use non-overlapping IP address ranges to ensure proper routing and connectivity. For example, you can use the 10.10.0.0/16 address space for your on-premises network and the 10.20.0.0/16 address space for your Azure network because they don't overlap. But, you can't use 192.168.0.0/16 on your on-premises network and use 192.168.10.0/24 on your Azure virtual network. These ranges both contain the same IP addresses so traffic can't be routed between them.
+
+**NOTE -** For on-premise network, there are three ranges of nonroutable IP addresses that are designed for internal networks that won't be sent over internet routers:
+
+10.0.0.0 to 10.255.255.255: over 16 million unique addresses. It's typically used by larger organizations for their internal networks.
+
+172.16.0.0 to 172.31.255.255: Provides around 1 million unique addresses. It's commonly used by medium to large-sized businesses for internal networks.
+
+192.168.0.0 to 192.168.255.255: Offering over 65,000 unique addresses. It's widely used by home networks, small businesses, and branch offices.
+
+**NOTE -** Remember that Azure uses the first three addresses on each subnet. The subnets' first and last IP addresses also are reserved for protocol conformance. Therefore, the number of possible addresses on an Azure subnet is (2^n)-5, where n represents the number of host bits.
+
+## Distribute your services across Azure virtual networks and integrate them by using virtual network peering
+With peered virtual networks, traffic between virtual machines is routed through the Azure network. The traffic uses only private IP addresses. It doesn't rely on internet connectivity, gateways, or encrypted connections. The traffic is always private, and it takes advantage of the high bandwidth and low latency of the Azure backbone network.
+
+### Cross-subscription virtual network peering
+You can use virtual network peering even when both virtual networks are in different subscriptions. This setup might be necessary for mergers and acquisitions, or to connect virtual networks in subscriptions that different departments manage. Virtual networks can be in different subscriptions, and the subscriptions can use the same or different Microsoft Entra tenants.
+
+### Transitivity
+Virtual network peering is nontransitive. Only virtual networks that are directly peered can communicate with each other. Virtual networks can't communicate with peers of their peers.
+
+### Gateway transit
+You can connect to your on-premises network from a peered virtual network if you enable gateways transit from a virtual network that has a VPN gateway. Using gateway transit, you can enable on-premises connectivity without deploying virtual network gateways to all your virtual networks.
+
+This method can reduce the overall cost and complexity of your network. By using virtual network peering with gateway transit, you can configure a single virtual network as a hub network. Connect this hub network to your on-premises datacenter and share its virtual network gateway with peers.
+
+### Overlapping address spaces
+IP address spaces of connected networks within Azure, between Azure and your on-premises network can't overlap. This is also true for peered virtual networks. Keep this rule in mind when you're planning your network design. In any networks you connect through virtual network peering, VPN, or ExpressRoute, assign different address spaces that don't overlap.
+
+### Alternative connectivity methods
+**ExpressRoute circuit -** Another way to connect Vnets together is through an ExpressRoute Circuit. ExpressRoute is a dedicated, private connection between an on-premise datacenter and an Azure backbone network. Vnets that are connected through an ExpressRoute are part of the same routing domain and can communicate with one another.
+
+**VPN Gateways-** VPNs use internet to connect on-premise data centers to Azure backbone networks through an encrypted tunnel. We can use a site-to-site configuration to connect Azure Vnets through a VPN Gateway. VPN Gateways have higher latency than Vnet peering and cost more.
+
+**Note -** Because it's easy to implement and deploy, and it works well across regions and subscriptions, virtual network peering should be your first choice when you need to integrate Azure virtual networks.
 
 # Deploy and manage Azure Compute Resources
 There are a variety of Azure Compote Resources available in Azure. We'll go through all of them one by one. We'll also provide Terraform configurations to deploy that resource into Azure.
+
+
 
 ## Virtual Machine
 Imagine a scenario where we'd like to deploy a web application; for this, we would need servers to host the application, we would also need storage to store data associated with the application, and we also need networking; so, all the physical servers need to be part of a network. 
@@ -224,6 +280,24 @@ Network watcher enables you to monitor and repair the network health of IaaS ser
 - Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log. 
 - Traffic Analytics - Provides rich visualizations of flow logs data
 
-
 ### Azure Firewall
-The purpose of Azure firewall is to ensure outbound and inbound communications to the internet are safe. For this, we need to make sure it has a public ip address to have an interface to the internet. 
+The purpose of Azure firewall is to ensure outbound and inbound communications to the internet are safe. For this, we need to make sure it has a public ip address to have an interface to the internet.
+
+## Domain Name System (DNS)
+When a packet of data needs to be routed through the TCP protocol, a connection is established between the client, i.e., a laptop, to a server, i.e., www.microsoft.com, through the use of IP addresses. In this scenario, how would the client know the IP address of server? In real-world scenarios, a domain name is assigned to the IP address of the machine running an application. The domain name is then communicated to users/clients. 
+
+In reality, there are DNS servers available on the internet that map domain names to IP addresses. In the above scenario, the client will access the DNS server on the internet and query the domain name of the server to find its IP address.
+
+## Routing a domain name to a VM
+When an application is up & running on a VM hosted in Azure, we have the possibility to assign a domain name to the IP address of that VM. That name will be appended to ```<regionname>.cloudapp.azue.com```. However, we can also buy a domain name from vendors in the market, and make sure all incoming traffic to that domain gets routed to the IP address of the machine running our application. We can do so by adding a record to the DNS server provided by the vendor. There are a number of different records available, but the most common one is the "A" record 
+but in each one we will have to provide the IP address of the server running our application.
+
+## Azure DNS Zone
+Here you'd create a zone that maps onto the public domain already bought, and instead of creating the records within the external service provider, it'd be possible to create it within the Azure platform. This allows us to manage the domain fully within Azure. 
+
+## Different records 
+There are a vareity of record types we can add into the Azure Zone service: 
+
+**Record A -** It's the most simple record type, also known as the "Address" record, that maps a domain name into the IPv4 address of the server running that domain's service. 
+
+**Record NS -** Name Servers are responsible for providing results for queries by the DNS resolver for a specific domain. When a DNS resolver makes a query, it first checks the Name Server for that domain. Once the NS is found, it queries the NS to find the necessary information for that domain in question, i.e., the A records to find the IP address mapped to it.

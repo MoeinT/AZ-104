@@ -21,6 +21,7 @@ module "ApplicationGateway" {
         },
       },
 
+      # Two backend pools for the 'images' & 'videos' VMs
       backend_address_pool = {
         (local.backend_address_pool_name_images) = {
         },
@@ -28,12 +29,14 @@ module "ApplicationGateway" {
         },
       }
 
+      # A frontend port for incoming requests
       frontend_port = {
         (local.frontend_port_name) = {
           port = 80
         }
       }
 
+      # Listeners accept traffic arriving on a specified combination of protocol, port, host, and IP address.
       http_listener = {
         (local.listener_name) = {
           frontend_ip_configuration_name = local.frontend_ip_configuration_name
@@ -83,10 +86,10 @@ module "ApplicationGateway" {
         }
       }
 
+      # Default address when non of the specified paths are matched
       redirect_configuration = {
         (local.redirect_configuration_name) = {
           redirect_type = "Permanent"
-          # target_listener_name = "http-listener-${var.env}"
           target_url = "https://stacksimplify.com/azure-aks/azure-kubernetes-service-introduction/"
         }
       }
