@@ -14,7 +14,7 @@ Our entire Azure network setup, including the virtual network, subnets, VMs, and
 - Within the VNet, create two subnets: one for the DNS server and one for the web server.
 ### 2. Deploy Virtual Machines:
 - Within each subnet, deploy a virtual machine.
-- Name the VM in the subnet intended for DNS server as dns-server and the other as web-server.
+- Name the VM in the subnet intended for DNS server as ```dns-server``` and the other as ```web-server```.
 ### 3. Install and Configure Active Directory Domain Services (AD DS):
 - Log in to the dns-server virtual machine.
 - Install Active Directory Domain Services.
@@ -22,13 +22,14 @@ Our entire Azure network setup, including the virtual network, subnets, VMs, and
 - Specify the domain name as cloud2hub.com.
 ### 4 .Configure DNS Server for Virtual Network:
 - Add the private IP address of the dns-server virtual machine to the VNet DNS server settings.
-### 5. Add Domain to Web Server:
-- Configure the web-server virtual machine to use the DNS server.
-- Add the domain cloud2hub.com to the web server.
+### 5. Add Web Server to Domain:
+- Join the web-server virtual machine to the cloud2hub.com domain.
+- This action automatically adds an "A" record within the DNS server, enabling DNS resolution for ```web-server.cloud2hub.com```.
+- Install and configure Internet Information Services (IIS) on the web-server virtual machine to listen to requests.
 ### 6. Restart Web Server:
 - Restart the web-server virtual machine to apply the DNS settings.
-### Test DNS Resolution:
-- Use a fully qualified domain name (FQDN) to connect to the web server virtual machine from the DNS-server VM.
+### 7. Test DNS Resolution:
+- Use a fully qualified domain name (FQDN) to connect to the web server virtual machine from the DNS-server VM using ```web-server.cloud2hub.com```
 
 ## Conclusion:
 Setting up a local DNS server within an Azure Virtual Network provides efficient name resolution for your network resources. By following these steps, you can establish a reliable DNS infrastructure tailored to your specific needs within Azure.
