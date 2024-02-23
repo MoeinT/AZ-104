@@ -2,13 +2,13 @@
 module "publicIPs" {
   source = "../../CommonModules/PublicIp"
   properties = {
-    "dnsserver-public-ip-${var.env}" = {
+    "client-public-ip-${var.env}" = {
       location            = module.Rg.rg-locations["az-104-${var.env}"],
       resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
       allocation_method   = "Static",
       sku                 = "Standard"
     },
-    "webserver-public-ip-${var.env}" = {
+    "web-public-ip-${var.env}" = {
       location            = module.Rg.rg-locations["az-104-${var.env}"],
       resource_group_name = module.Rg.rg-names["az-104-${var.env}"],
       allocation_method   = "Static",
@@ -16,4 +16,3 @@ module "publicIPs" {
     }
   }
 }
-#module.publicIPs.publicIp-id["dnsserver-public-ip-${var.env}"]
