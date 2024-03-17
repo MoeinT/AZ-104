@@ -8,11 +8,11 @@ module "RouteTable" {
       disable_bgp_route_propagation = false
       route = {
         "route-${var.env}" = {
-          # All traffic in the Vnet
+          # All traffic
           address_prefix = "0.0.0.0/0"
           # The traffic should be forwarded to the central VM, hence a virtual appliance
           next_hop_type = "VirtualAppliance",
-          # The private Ip address of the central VM
+          # The public IP address of the firewall
           next_hop_in_ip_address = module.publicIPs.publicIp-address["firewall-public-ip-${var.env}"]
         },
       },

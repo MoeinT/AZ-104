@@ -154,10 +154,80 @@ IP address spaces of connected networks within Azure, between Azure and your on-
 
 **Note -** Because it's easy to implement and deploy, and it works well across regions and subscriptions, virtual network peering should be your first choice when you need to integrate Azure virtual networks.
 
+## Host your domain on Azure DNS
+When a packet of data needs to be routed through the TCP protocol, a connection is established between the client, i.e., a laptop, to a server, i.e., www.microsoft.com, through the use of IP addresses. In this scenario, how would the client know the IP address of server? In real-world scenarios, a domain name is assigned to the IP address of the machine running an application. The domain name is then communicated to users/clients.
+
+In reality, there are DNS servers available on the internet that map domain names to IP addresses. In the above scenario, the client will access the DNS server on the internet and query the domain name of the server to find its IP address.
+
+### Routing a domain name to a VM
+When an application is up & running on a VM hosted in Azure, we have the possibility to assign a domain name to the IP address of that VM. That name will be appended to ```<regionname>.cloudapp.azue.com```. However, we can also buy a domain name from vendors in the market, and make sure all incoming traffic to that domain gets routed to the IP address of the machine running our application. We can do so by adding a record to the DNS server provided by the vendor. There are a number of different records available, but the most common one is the "A" record, but in each one we will have to provide the IP address of the server running our application.
+
+### Azure DNS
+Azure DNS allows you to host and manage your domains by using a globally distributed name-server infrastructure. 
+
+## Azure DNS Zone
+Here you'd create a zone that maps onto the public domain already bought, and instead of creating the records within the external service provider, it'd be possible to create it within the Azure platform. This allows us to manage the domain fully within Azure. 
+
+## Different records 
+There are a vareity of record types we can add into the Azure Zone service: 
+
+**Record A -** It's the most simple record type, also known as the "Address" record, that maps a domain name into the IPv4 address of the server running that domain's service. 
+
+**Record NS -** Name Servers are responsible for providing results for queries by the DNS resolver for a specific domain. When a DNS resolver makes a query, it first checks the Name Server for that domain. Once the NS is found, it queries the NS to find the necessary information for that domain in question, i.e., the A records to find the IP address mapped to it.
+
+**Record CNAME -** It's used to create an alias from one domain to another. If we had multiple domain names accessing the same web server, we'd use CNAME. 
+
+**MX -** It's a mail exchange record. It maps mail requests to mail servers. 
+
+**TXT -** It's a text record. It maps text strings to domain names; Azure and Microsoft 365 use TXT records to verify domain ownership.
+
+**NOTE -** You can use Azure aliases to override the static A/AAAA/CNAME record to provide a dynamic reference to your resources. It'd be useful to point a hostname to an Azure resource, like a load balancer, instead of pointing it to a single IP address; in this case the domain name would continue to work if the load balancer's ip address changes. 
+
+## Identify routing capabilities of an Azure virtual network
+Allows us to control traffic within a Vnet. Through the use of Microsoft-managed system routes, communications between VMs are possible across subnets, Vnets and on-premise networks. However, it is possible to override these system routes by defining custom routes to control the flow to the next hop.
+
+### System routes
+By default, there are two system routes by default that allow communications between subnets and the internet, however, additional system routes get created if the following capabilities are enabled.
+
+- **Vnet peering**
+- **Service chaining**
+- **Virtual Network gateway -** We can use a virtual network gateway to send encrypted traffic between Azure and on-premises, or to send encrypted traffic between Azure networks. A virtual network gateway contains routing tables and gateway services.
+- **Virtual network service endpoint -** Virtual network service endpoints extend your private address space in Azure by providing a direct connection to your target resources, i.e., a storage account; so your Azure VMs can access this storage account; on the other hand accesss to this storage account by public VMs is blocked and it's only accessible through IP exceptions and firewall openings. As you enable service endpoints, Azure creates routes in the route table to direct this traffic.
+### Custom routes 
+We can use custom routes to override the default systems routes and control the flow of traffic to the next hop. The next hop can be of type:
+- Virtual appliance: It can be an Azure firewall, a virtual machine to even an Azure load balancer. So, it'd be possible to route incoming traffic to a load balancer, or an Azure firewall to perform certain security functions before reaching the target destination. We would also need to provide the IP address attached to the next hop. 
+- Virtual Network gateway
+- Virtual Network: Use to override the default system route within a virtual network.
+- Internet: Use to route traffic to a specified address prefix that is routed to the internet
+- None: Use to drop traffic to a specified address prefix. 
+#### Service tags for UDFs
+You can define service tags as the address prefix for a UDF. A service tag represents a group of IP address prefixes from a given Azure service. So, Microsoft automatically updates the service tag in case an address prefix changes and we won't have to create a high number of UDFs for each IP address.  
+### Boarder gateway protocol
+Your network gateway in your on-premise network can exchange routes with your virtual network gateway in Azure by using a boarder gateway protocol. Read more details here in the [documentation](https://learn.microsoft.com/en-us/training/modules/control-network-traffic-flow-with-routes/2-azure-virtual-network-route). 
+
+### route selection and priority
+If there are multiple routes with the same address prefix, Azure selects the route based on the type in the following order of priority:
+- User-defined routes
+- BGP routes
+- System routes
+
+## Improve application scalability and resiliency by using Azure Load Balancer
+With Azure Load Balancer you can distribute incoming traffic to multiple virtual machines in the backend to scale your application; imaging a healthcare organization that has a website at the front end for patients to book an appoitment. It's absolutely vital for the website to properly manage a large number of requests to the front end, so that the patients can always book an appointment. If there are multiple servers at the backend, Azure Load Balancer can distribute the traffic to mutliple servers in parallel leading to improved ***capacity***, and it can monitor the heath of those servers and route the traffic to healthy ones in case a failure occuers leading to improved ***resiliency***. 
+
+Another important feature of load balancers is that they use a hash-based algorithm for distributing the traffic to the backend VMs. They usse a five-tuple hash for it. The hash is created based on the below five elements. Read more about the distribution algorithm [here](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/3-public-load-balancer) in the documentation:
+- ***Source IP address -*** The IP address of the requesting client
+- ***Source port -*** The port of the requesting client 
+- ***Destinatioin -*** IP: The destination IP of the requesting client
+- ***Protocol type -*** The specified protocol type, TCP or UDP
+
+Also, there are two tiest for ALB; read in more details in [this](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/2-load-balancer-features) documentation.
+
+### Internal load balancer
+In addition to forwarding traffic from users to the front-end servers, you can use Azure Load Balancer to forward traffic from front-end servers evenly to the backend servers. In some applications, the frontend calls for business logic in servers hosted in the middle tier. You'd want to make sure the middle tier is also as scalable and resilient as the middle tier; in order to do so, we can use an internal load balancer. See [this](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/5-internal-load-balancer) page to read more on an interesting scenario where internal load balancers are very useful. 
+
+
 # Deploy and manage Azure Compute Resources
 There are a variety of Azure Compote Resources available in Azure. We'll go through all of them one by one. We'll also provide Terraform configurations to deploy that resource into Azure.
-
-
 
 ## Virtual Machine
 Imagine a scenario where we'd like to deploy a web application; for this, we would need servers to host the application, we would also need storage to store data associated with the application, and we also need networking; so, all the physical servers need to be part of a network. 
@@ -221,10 +291,6 @@ In the prior section when taking about VMs, we had a quick introduction about ce
 ## Virtual network
 In the previous chapter, we deployed a VM under a subnet within a Vnet. We managed all the required resources through a modular approach with Terraform. In this chapter, we'll go through details of address ranges, CIRDR notation, and finally deploy a Vnet with a specific IP ranges and go ahead and deploy a VM within it.
 
-
-
-
-
 ## Azure Bastion
 It's a service provided by Azure that allows secure RDP and SSH access to VMs within a Virtual Network. It acts as a gateway.
 
@@ -283,21 +349,3 @@ Network watcher enables you to monitor and repair the network health of IaaS ser
 ### Azure Firewall
 The purpose of Azure firewall is to ensure outbound and inbound communications to the internet are safe. For this, we need to make sure it has a public ip address to have an interface to the internet.
 
-## Domain Name System (DNS)
-When a packet of data needs to be routed through the TCP protocol, a connection is established between the client, i.e., a laptop, to a server, i.e., www.microsoft.com, through the use of IP addresses. In this scenario, how would the client know the IP address of server? In real-world scenarios, a domain name is assigned to the IP address of the machine running an application. The domain name is then communicated to users/clients. 
-
-In reality, there are DNS servers available on the internet that map domain names to IP addresses. In the above scenario, the client will access the DNS server on the internet and query the domain name of the server to find its IP address.
-
-## Routing a domain name to a VM
-When an application is up & running on a VM hosted in Azure, we have the possibility to assign a domain name to the IP address of that VM. That name will be appended to ```<regionname>.cloudapp.azue.com```. However, we can also buy a domain name from vendors in the market, and make sure all incoming traffic to that domain gets routed to the IP address of the machine running our application. We can do so by adding a record to the DNS server provided by the vendor. There are a number of different records available, but the most common one is the "A" record 
-but in each one we will have to provide the IP address of the server running our application.
-
-## Azure DNS Zone
-Here you'd create a zone that maps onto the public domain already bought, and instead of creating the records within the external service provider, it'd be possible to create it within the Azure platform. This allows us to manage the domain fully within Azure. 
-
-## Different records 
-There are a vareity of record types we can add into the Azure Zone service: 
-
-**Record A -** It's the most simple record type, also known as the "Address" record, that maps a domain name into the IPv4 address of the server running that domain's service. 
-
-**Record NS -** Name Servers are responsible for providing results for queries by the DNS resolver for a specific domain. When a DNS resolver makes a query, it first checks the Name Server for that domain. Once the NS is found, it queries the NS to find the necessary information for that domain in question, i.e., the A records to find the IP address mapped to it.
