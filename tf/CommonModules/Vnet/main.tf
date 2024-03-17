@@ -17,7 +17,7 @@ resource "azurerm_virtual_network" "Vnet" {
   address_space       = each.value.address_space
   location            = each.value.location
   resource_group_name = each.value.resource_group_name
-  
+
   lifecycle {
     ignore_changes = [dns_servers]
   }

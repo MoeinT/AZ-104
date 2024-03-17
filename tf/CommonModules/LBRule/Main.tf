@@ -21,5 +21,6 @@ resource "azurerm_lb_rule" "LBrule" {
   backend_port                   = each.value.backend_port
   backend_address_pool_ids       = lookup(each.value, "backend_address_pool_ids", null)
   frontend_ip_configuration_name = each.value.frontend_ip_configuration_name
+  load_distribution              = lookup(each.value, "load_distribution", "None")
   probe_id                       = lookup(each.value, "probe_id", null)
 }
