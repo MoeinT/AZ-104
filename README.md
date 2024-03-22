@@ -223,20 +223,21 @@ Another important feature of load balancers is that they use a hash-based algori
 Also, there are two tiest for ALB; read in more details in [this](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/2-load-balancer-features) documentation.
 
 ### Internal load balancer
-In addition to forwarding traffic from users to the front-end servers, you can use Azure Load Balancer to forward traffic from front-end servers evenly to the backend servers. In some applications, the frontend calls for business logic in servers hosted in the middle tier. You'd want to make sure the middle tier is also as scalable and resilient as the middle tier; in order to do so, we can use an internal load balancer. See [this](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/5-internal-load-balancer) page to read more on an interesting scenario where internal load balancers are very useful. 
-
+In addition to forwarding traffic from users to the front-end servers, you can use Azure Load Balancer to forward traffic from front-end servers evenly to the backend servers. In some applications, the frontend calls for business logic in servers hosted in the middle tier. You'd want to make sure the middle tier is also as scalable and resilient as the middle tier; in order to do so, we can use an internal load balancer. See [this](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/5-internal-load-balancer) page to read more on an interesting scenario where internal load balancers are very useful.
 
 # Deploy and manage Azure Compute Resources
-There are a variety of Azure Compote Resources available in Azure. We'll go through all of them one by one. We'll also provide Terraform configurations to deploy that resource into Azure.
+The primary advantage of working with virtual machines is to have more control over installed software and configuration settings. Azure Virtual Machines supports more granular control than other Azure services, such as Azure App Service or Azure Cloud Services.
 
 ## Virtual Machine
 Imagine a scenario where we'd like to deploy a web application; for this, we would need servers to host the application, we would also need storage to store data associated with the application, and we also need networking; so, all the physical servers need to be part of a network. 
 
 Within Azure, we can take advantage of Cloud Computing concepts and provision a Virtual Machine in the cloud. In addition to the virtual machine, you will see other resources that get created as part of the virtual machine resource, such as the network interface, the disk, network security group, and the virtual network. Let's dive deeper into each components of our network resources:
 
-**VM Availability sets -** Availability set is a logical grouping of the virtual machines. It helps to improve the overall availability of the virtual machines. The VMs are hosted on a physical server in a data center. And if all the VMs hosting the application are within one single physical server, then the whole application might go down in case of failure or maintenance on that data center. In order to handle such a scnenario, we can make the VMs as part of an availability set. When we assign a virtual machine as part of an availability set, it gets assgined a ***fault*** and ***update*** domain. Update domain means that Azure will apply updates on the underlying infrastructure one domain at a time, and fault domain means that the VMs gets assigned to different power source and network domains. This ensures that VMs that are part of the same availability set are always available in case an update is required on the physical infrastructure or the power source and network has to be reset.
+**VM Availability sets -** Availability set is a logical grouping of the virtual machines. It helps to improve the overall availability of the virtual machines. The VMs are hosted on a physical server in a data center. And if all the VMs hosting the application are within one single physical server, then the whole application might go down in case of failure or maintenance on that data center. In order to handle such a scnenario, we can make the VMs as part of an availability set. When we assign a virtual machine as part of an availability set, it gets assgined a ***fault*** and ***update*** domain. Update domain means that Azure will apply updates on the underlying infrastructure one domain at a time, and fault domain means that the VMs gets assigned to different power source and network domains. This ensures that VMs that are part of the same availability set are always available in case an update is required on the physical infrastructure or the power source and network has to be reset. For more details on availability sets and things to consider when using them, see [this documentation](https://learn.microsoft.com/en-us/training/modules/configure-virtual-machine-availability/3-setup-availability-sets).
 
-**VM Availability zones -** This features help provides better availability for your application by protecting them from datacenter failures. Each Availability zone is a unique physical location in an Azure region. Each zone comprises of one or more data centers that has independent power, cooling, and networking. Using Availability Zones, you can be guaranteed an availability of 99.99% for your virtual machines. You need to ensure that you have 2 or more virtual machines running across multiple availability zones.
+**NOTE -** In a proper design we need to separate application tiers, meaning that there VMs each in tier should have their own availability set. Each fault domain however, contains one vm from each tier. So, in case of a power outage or network issue, the whole application remains up & running. 
+
+**VM Availability zones -** This features help provides better availability for your application by protecting them from datacenter failures. Each Availability zone is a unique physical location in an Azure region. Each zone comprises of one or more data centers that has independent power, cooling, and networking. Using Availability Zones, you can be guaranteed an availability of 99.99% for your virtual machines. You need to ensure that you have 2 or more virtual machines running across multiple availability zones. availability set for each tier.
 
 **VM scale set -** One way to create an identical set of Virtual Machines to host an application is through the VM scale set. Instead of manually creating virtual machines to host the application, we can create a scale set resource that is responsible for creating the virtual machines and scaling the application in a horizontal way. Using this service, we can define rules for scaling, i.e., if CPU percentage of the initial VM reaches 75 due to additional load on that VM, go ahead and create an additional VM for horizontal scaling. The other way around is possible. Using this feature, it is possible to scale down the number of VMs. For more details, see the microsoft [documentation](https://learn.microsoft.com/en-us/azure/virtual-machine-scale-sets/overview). 
 
@@ -288,11 +289,47 @@ For security reasons, we've used network access control lists within the Key Vau
 # Configure and manage virtual networking
 In the prior section when taking about VMs, we had a quick introduction about certain networking aspects in Azure. Here we'll dive deeper into azure networking resources and concepts.
 
-## Virtual network
-In the previous chapter, we deployed a VM under a subnet within a Vnet. We managed all the required resources through a modular approach with Terraform. In this chapter, we'll go through details of address ranges, CIRDR notation, and finally deploy a Vnet with a specific IP ranges and go ahead and deploy a VM within it.
-
 ## Azure Bastion
 It's a service provided by Azure that allows secure RDP and SSH access to VMs within a Virtual Network. It acts as a gateway.
+
+## Configure Azure App Service plans 
+Previously we discussed Virtual Machines, which give un a fine-grained control over the software configurations, installations etc. Using Azure App Service, the underlying compute infrastructure is abstracted away and is completely managed by Microsoft. Within an Azure App Service, we need to provision and define an Azure App Service Plan that defines the required compute infrastructure to run the application. One or more applications can be configured to run on the same Azure Service Plan. Multiple applications in the same plan share the same virtual machine instances. However, if the application is resource-intensive, with different scaling requirements or is supposed to be deployed in a different regiion, it's best to add it to a new service plan. 
+
+### Plans and pricing
+We can configure a free, shared, basic, standard, premium, and isolated plan each suitable for a different kind of use case; read [this](https://learn.microsoft.com/en-us/training/modules/configure-app-service-plans/3-determine-plan-pricing) page for more details. 
+
+## Configure Azure App Service
+###  Deployment slots: 
+Deployment slots are live apps that have their own hostnames. They're only available via the standard, premium and isolated app servive tiers. App content and configuration elements can be swapped between the deployment slots, including the production slot.
+Advantages in using deployment slots:
+- Validation: We can deploy changes into a staging slot before swapping them with the production slot. 
+- Restoring to the last version: if the new version is not as we expected, we can perform the reverse swapp to return to the previous version
+- Auto swap: Similar to automations in Azure DevOps, when auto-swap is enabled, whenever we push the new changes to a slot, it'll automatically get swaapped with the production slot.
+Security features in Azure App service: 
+- When you enable the security module in Azure App Service, every incoming request/traffic will pass through this module before it's handled by your application
+- So, the authorization and authentication security module in Azure App Service runs in the same environment as the application code, but separately
+Backup for the application
+- The Backup and Restore feature in Azure App Service lets you easily create backups manually or on a schedule. You can configure the backups to be retained for a specific or indefinite amount of time. You can restore your app or site to a snapshot of a previous state by overwriting the existing content or restoring to another app or site.
+You would need a storage account and a container as the destination for the backup files. If the storage account is configured for a firewall, cannot use it as the destination for the backup files. 
+### Monitoring applications 
+We can use Azure Application Insight, which is a feature of Azure Monitor for monitoring and detecting any performance anomolies in your live applications. We can use it to monitor incoming requests, frontend application and backend services running in the backgroun. See [this](https://learn.microsoft.com/en-us/training/modules/configure-azure-app-services/10-use-application-insights) documentation for more details on how application insight can be integrated for monitoring different elements of the application. 
+
+## Azure container instance
+- A container in Docker is a standalone package that contains everything you need to run a piece of software. - A container package includes application codes, the runtime environment, such as .Net Core, tooks, settings and dependencies. 
+
+- A **Dockerfile** is a text file that includes instructions on how to build a Docker image. 
+- The key feature of Docker is that it guarantees that a containerized package runs the same way locally, on windows, linux or in the cloud. 
+- Once your code is contanerized, tested and deployed in the cloud, you can use Azure Container Instances for easily scaling it. 
+
+### VMs vs Containers
+- They run the user mode portion of an operating system, tailored to contain only necessary services for applications, thus consuming fewer system resources. Virtual machines run a complete operating system, including the kernel, which requires more system resources.
+- Deployment methods and storage solutions also differ between the two, with containers using Azure Disks or Azure Files for storage and virtual machines utilizing virtual hard disks or SMB file shares.
+- Additionally, fault tolerance mechanisms vary, with containers rapidly recreated by orchestrators in case of node failure, while virtual machines can fail over to another server within a cluster. When considering container adoption, benefits such as increased flexibility, speed in development and deployment, simplified testing, and higher workload density should be taken into account for optimal implementation of containerized applications within a company's infrastructure.
+
+### Container groups
+Multi-container groups are useful when you want to divide a single functional task into a few container images. The images can be delivered by different teams and have separate resource requirements. Containers in a group can use Azure file shares as volume mounts. Each container in the group mounts one of the file shares locally.
+
+
 
 ## Point to site VPN connection
 Point to site VPN connections allow you to establish a connection between Azure Virtual Network and client machines. Imagine a scenario where we'd like to establish a connection between a client machine and a web application running on a Virtual Machine in an Azure Virtual Network. Normally, such connection is not possible, since no public IP is assined to this Virtual Machine. In such cases, we can use something known as Point to site VPN connection. Here are the required steps to implement this solution on a high level: 
