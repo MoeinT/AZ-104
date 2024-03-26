@@ -319,8 +319,17 @@ Security features in Azure App service:
 Backup for the application
 - The Backup and Restore feature in Azure App Service lets you easily create backups manually or on a schedule. You can configure the backups to be retained for a specific or indefinite amount of time. You can restore your app or site to a snapshot of a previous state by overwriting the existing content or restoring to another app or site.
 You would need a storage account and a container as the destination for the backup files. If the storage account is configured for a firewall, cannot use it as the destination for the backup files. 
+
+### Auto scaling in Azure web App
+By defining rules such as percentage of CPU or memory usage, we can automatically scale up (increasing the size of an already existing instance), or scale out (increase the number of instances) in your Azure App Service. An important feature is that auto-scaling is only available for the standard or above tiers. With the basic Azure Service Plan, we can only manually scale our web application and go up untill only 10 instances. 
+
+**NOTE -** There's also the automatic scaling that aims to improve the app's performance and avoid cold starts by prewarming instance acting as a buffer to ensure a smooth performance transition. This is different than the rule-based scaling and happens automatically by analyzing the http requests. 
+
 ### Monitoring applications 
 We can use Azure Application Insight, which is a feature of Azure Monitor for monitoring and detecting any performance anomolies in your live applications. We can use it to monitor incoming requests, frontend application and backend services running in the backgroun. See [this](https://learn.microsoft.com/en-us/training/modules/configure-azure-app-services/10-use-application-insights) documentation for more details on how application insight can be integrated for monitoring different elements of the application. 
+
+### Azure Web App and Vnet integration
+Imagine a scneario where the web app needs to communicate with a database that's hosted in virtual machine, which itself is part of a virtual network. So, there needs to be a private communication between the web app and the the virtual machine. It is possible through Azure Web App & Vnet Integration. This allows communication from the Web App to any component within the Vnet, but any sort of outbound communication from the Vnet into the Web App is still not allowed. So, we cannot initiate a connection from the Vnet into the web app. 
 
 ## Azure container instance
 - A container in Docker is a standalone package that contains everything you need to run a piece of software. - A container package includes application codes, the runtime environment, such as .Net Core, tooks, settings and dependencies. 
