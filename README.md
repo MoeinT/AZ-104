@@ -432,3 +432,37 @@ There are 3 access tiers for blob data, Hot, Cool & Archive. Each one is optimiz
 - **Archive -** It's an offline tier for storing data and is optimized for use cases that can tolerate hours of latency. Data must remain in the storage account for at least 180 days otherwise will be subject to early deletion charges. It's the most cost-effective option for storing data and the most expensive for accessing it. Data for the Archive tier includes secondary backups, original raw data, and legally required compliance information.
 ### Lifecycle management rules
 Azure blob storage supports lifecycle management rules; we can use it to transition to the right access tier. 
+# Manage identities and governance in Azure
+## Configure Microsoft Entra ID
+Microsoft Entra ID is a cloud-based identity and access management service. See [this](https://learn.microsoft.com/en-us/training/modules/configure-azure-active-directory/2-describe-benefits-features) documentation for details on its capabilities.
+## Configure role-based access control
+We can use role-based access control to ensure resources are protected, but also certain users can access them. So, we can create roles and assign them to different users allowing them to have limited access to certain resources. So with this, we can decide and manage who can access to Azure resouces. We can also control what operations those users can do on Azure resources. Here are certain important concepts to learn:
+- Security Principal: An object that can request access to a resource: User, group, service principal, and managed identity
+- Role definition: Lists allowed operations on Azure resources; there are build-in roles, but each organization can create their own custom roles.
+- Scope: This specifies the boundary for the requested level of access, i.e., subscription, resource group, resource
+- Role Assignment: A role assignment attaches a role definition to a security principal at a particular scope.
+We also need to explore the difference between RBAC and Entra Id roles.
+
+### Things to consider and about RBAC
+- Using RBAC, we can use bulilt-in role definitions, but also create our own custom roles to assign to users and create a fine-grained access to users.
+- When definint roles, we define *NotActions*  anc *Actions* to define the operations that are embedded in this role.
+- We can also specify *AssignableScopes* to determine on what level this role can be assigned to, i.e., subscriptions, resource groups or resource.
+- The most important built-in roles are *owner*, *contributor* & *Reader*. See [this documentation](https://learn.microsoft.com/en-us/training/modules/configure-role-based-access-control/3-create-role-definition) to see what kind of operations each entail.
+- A resource inherits role assignments from its parent resource, i.e., a role at a resource group level would automatically be transfered to a resource in it.
+
+**NOTE -** In addition to RBAC, Microsoft Entra Id provides built-in administrator roles to manage Microsoft Entra resources like users, groups and domains.
+
+### Difference between RBAC and Microsoft Entra Id
+**Access management -** RBAC controls access to Azure resource, so it provides a more granular access management for Azure resources, but Microsoft Entra provides access to Microsoft Entra resources.
+**Scope assignment -** RBAC can assign roles at difference scope, but Microsoft Entra Id provides access at the tenant level.
+**Roles -** RBAC has built-in roles and has the possiblity to create custom roles as well, but with Entra Id offers administrator roles to manage Entra Id resoureces. Here's Microsoft Entra Id administrator roles: *Global admin*, *Application admin*, and *Application developer*.
+
+## Create Azure users and groups in Microsoft Entra ID
+Imagine a scenario where you're a Microsoft Entra Id global administrator. A new team of developers are to be onboarded to develop and host an application in Azure. There are a number of external users who are to be consulted for the application design. Here's the goal: 
+- The goal is to create external users in Microsoft Entra Id for external users.  
+- We should also create groups to manage access to the application resource
+
+There are 3 ways we can assign roles to users: 
+- Direct assignment
+- Group assignment
+- Rule-based assignment
