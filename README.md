@@ -4,7 +4,6 @@ This repository is to study and prepare for the AZ-104 microsoft certificate; we
 All the resources that are subject to this certification, such as networking resources, virtual machine, Azure Kubernetes etc. will be deployed and managed using Infrastructure as Code (IaC) concepts with Terraform as part of a CI/CD pipeline.
 
 # Configure and manage virtual networks for Azure administrators
-
 ## Azure Virtual Network
 This resources represents a virtual network in Azure, which is a logical isolated network in which Azure services are deployed. Vnets allow your Azure Services to securely communicate with one another, the internet, and on-premise networks. When defining a VNet, we need to specify an ip address space, which is a range of ip addresses available to resources within the Vnet. 
 
@@ -33,7 +32,7 @@ a firewall controlling inbound and outbound traffic to network interfaces.
 
 ### Things to consider when using subnets
 - **Consider service endpoints:**  You can limit access to Azure resources like an Azure storage account or Azure SQL database to specific subnets with a virtual network service endpoint. You can also deny access to the resources from the internet. You might create multiple subnets, and then enable a service endpoint for some subnets, but not others.
-- **Consider Private linkes -** Azure Private Link provides connections from Azure Virtual Network to Microsoft Platform as a Service (PaaS), customer-owned, or Azure partner services. It simplifies the architecture and provides a secure connection to endpoints in Azure. 
+- **Consider Private linkes -** Azure Private Link provides connections from Azure Virtual Network to Microsoft Platform as a Service (PaaS), customer-owned, or Azure partner services. It simplifies the architecture and provides a secure connection to endpoints in Azure. The advantage of using a Private Link is that it allows resources within a Vnet to communicate within your target resources in Azure through Microsoft's backbone network infrastructure without having to go through the public internet.
 
 ## network security groups
 A NSG is a Microsoft managed service that can be attached to a network interface as well as a subnet controlling inbound and outbound traffic; i.e., we can add a network security rule to allow inbound communications through port 80; this would allow HTTP requests to the VM attached to the interface. Within the network security rules, we can also add a source to allow communications from only specific sources, i.e., ip addresses; if the NSG is attached to multiple network interfaces, we can add a destination to only allow communications to a specific resource attached to that network interface, i.e., could be the private ip address of a VM. Regarding outbound traffic, by default all outbound communications are allowed, meaning that a network interface attached to a VM would allow it to communicate to the outside world, without any limit. Here's how the network security rules are assessed: 
@@ -397,7 +396,73 @@ Network watcher enables you to monitor and repair the network health of IaaS ser
 **Traffic** Network Watcher offers two traffic tools that help you log and visualize network traffic: Flow logs, and Traffic analytics. 
 - Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log. 
 - Traffic Analytics - Provides rich visualizations of flow logs data
-
 ### Azure Firewall
 The purpose of Azure firewall is to ensure outbound and inbound communications to the internet are safe. For this, we need to make sure it has a public ip address to have an interface to the internet.
 
+# Implement and manage storage in Azure
+## Implement Azure Storage Account
+Azure Storage offers a scalable object store for data objects. It provides a file system service in the cloud, a messaging store, and a NoSql object store. Developers can use Azure Storage for working data. Working data includes websites, mobile applications and desktop applications. Azure Storage can be used to store 3 categories of data: 
+- VM data: VM data include Disks and Files; disks are storage blocks for VMs and files are fully-managed file shares in the cloud.
+- Structured data: Unstructured data can be stored in Azure Blob Storage or Azure Data Lake Storage; Azure Blob Storage is a highly scalable, REST-based cloud storage object. Azure Data Lake Storage is a Hadoop Distributed File System.
+- Unstructured data: Structured data can be stored in Azure Table Storage, Azure Cosmos DB, and Azure SQL. Azure Cosmos DB is a globally distributed database service, and Azure SQL is a database-as-a-service database based on SQL.
+### Storage Account Tiers
+- Standard: Offers a hard drive disk and offers the cheapest option per GB
+- Premium: Offers a solid state drive with enhanced peformance with low-latency suitable for VM disks with I/O intensive applications like databases.
+
+### Storage solutions by Azure storage account
+There are 4 data services that can be accessed using Azure Storage Account: Azure Blob Storage, Azure Queue, Azure Files, Azure Table Storage. See the details for all these data services [here](https://learn.microsoft.com/en-us/training/modules/configure-storage-accounts/3-explore-azure-storage-services) in the documentation.
+
+### Replication strategies
+Azure creates multiple copies of your data to protect it again planned or unplanned events like transient harware failures, power outage, natrual disasters etc. See below for the types of redundancy solution and see the [documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy) for more in-depth information.
+- **Locally redundant storage (LRS)** copies your data synchronously three times within a single physical location in the primary region. LRS is the least expensive replication option, but isn't recommended for applications requiring high availability or durability. An example scenario where the LRS storage type should be chosen is where we're processing sensor data in real-time and we're only interested in the most recent version and data loss is not important.
+- **Zone-redundant storage (ZRS)** copies your data in 3 availability zones within the primary region. For high availability applications, Microsoft recommends using ZRS, but also replicating to a secondary region.
+- **Geo-redundant storage (GRS)** copies your data 3 times in a single physical location in the primary region using LRS, but also to a physical location in a seconday region.
+- **Geo-zone-redundant storage (GZRS)** copies your data into 3 availability zones in the primary region using ZRS, but also into a single physical location in a secondary region using LRS. 
+### Secure storage endpoints
+You can use Azure service endpoints to restrict access to a storage account to only resources within a Vnet or Subset. An Azure Service Endpoint will extend a Vnet's IP address range by incorporating that storage account into its space. This way, access to the storage account will be possible through IP Address exception and firewall openings.
+
+Another approach to securing the storage account would be to create a private link to resources within a Vnet. So, the advantage to this approach is that communications between resources in a Vnet/Subnet to this storage account is established through the Microsoft backbone network infrastructure and will be go through the public internet. See [this] (https://www.youtube.com/watch?v=vM7yDwHSc_o) video for more details on how to create a private link to an Azure Storage Account.
+
+## Configure Azure Blob Storage
+It's a service for storing large amounts of unstructured data; data that does not adhere to any model or definition.
+### Blob Access Tiers
+There are 3 access tiers for blob data, Hot, Cool & Archive. Each one is optimized for a specific pattern of data usage.
+- **Hot -** The Hot tier is designed for the frequent read and write of objects in the storage account. By default, SAs are created in the HOT tier; it has the lowest access costs and highest storage cost.
+- **Cool -** This tier is designed for storing large amounts of objects that are infrequently accessed. Data must remain untouched for at least 30 days for this tier. A example use case would be short-term backup files and disaster recovery datasets. It's a cost-effective option for data storage and more expensive than the hot tier for accessing data. 
+- **Archive -** It's an offline tier for storing data and is optimized for use cases that can tolerate hours of latency. Data must remain in the storage account for at least 180 days otherwise will be subject to early deletion charges. It's the most cost-effective option for storing data and the most expensive for accessing it. Data for the Archive tier includes secondary backups, original raw data, and legally required compliance information.
+### Lifecycle management rules
+Azure blob storage supports lifecycle management rules; we can use it to transition to the right access tier. 
+# Manage identities and governance in Azure
+## Configure Microsoft Entra ID
+Microsoft Entra ID is a cloud-based identity and access management service. See [this](https://learn.microsoft.com/en-us/training/modules/configure-azure-active-directory/2-describe-benefits-features) documentation for details on its capabilities.
+## Configure role-based access control
+We can use role-based access control to ensure resources are protected, but also certain users can access them. So, we can create roles and assign them to different users allowing them to have limited access to certain resources. So with this, we can decide and manage who can access to Azure resouces. We can also control what operations those users can do on Azure resources. Here are certain important concepts to learn:
+- Security Principal: An object that can request access to a resource: User, group, service principal, and managed identity
+- Role definition: Lists allowed operations on Azure resources; there are build-in roles, but each organization can create their own custom roles.
+- Scope: This specifies the boundary for the requested level of access, i.e., subscription, resource group, resource
+- Role Assignment: A role assignment attaches a role definition to a security principal at a particular scope.
+We also need to explore the difference between RBAC and Entra Id roles.
+
+### Things to consider and about RBAC
+- Using RBAC, we can use bulilt-in role definitions, but also create our own custom roles to assign to users and create a fine-grained access to users.
+- When definint roles, we define *NotActions*  anc *Actions* to define the operations that are embedded in this role.
+- We can also specify *AssignableScopes* to determine on what level this role can be assigned to, i.e., subscriptions, resource groups or resource.
+- The most important built-in roles are *owner*, *contributor* & *Reader*. See [this documentation](https://learn.microsoft.com/en-us/training/modules/configure-role-based-access-control/3-create-role-definition) to see what kind of operations each entail.
+- A resource inherits role assignments from its parent resource, i.e., a role at a resource group level would automatically be transfered to a resource in it.
+
+**NOTE -** In addition to RBAC, Microsoft Entra Id provides built-in administrator roles to manage Microsoft Entra resources like users, groups and domains.
+
+### Difference between RBAC and Microsoft Entra Id
+**Access management -** RBAC controls access to Azure resource, so it provides a more granular access management for Azure resources, but Microsoft Entra provides access to Microsoft Entra resources.
+**Scope assignment -** RBAC can assign roles at difference scope, but Microsoft Entra Id provides access at the tenant level.
+**Roles -** RBAC has built-in roles and has the possiblity to create custom roles as well, but with Entra Id offers administrator roles to manage Entra Id resoureces. Here's Microsoft Entra Id administrator roles: *Global admin*, *Application admin*, and *Application developer*.
+
+## Create Azure users and groups in Microsoft Entra ID
+Imagine a scenario where you're a Microsoft Entra Id global administrator. A new team of developers are to be onboarded to develop and host an application in Azure. There are a number of external users who are to be consulted for the application design. Here's the goal: 
+- The goal is to create external users in Microsoft Entra Id for external users.  
+- We should also create groups to manage access to the application resource
+
+There are 3 ways we can assign roles to users: 
+- Direct assignment
+- Group assignment
+- Rule-based assignment
