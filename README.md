@@ -377,28 +377,6 @@ For such scenarios where there are a high number of Azure Vnets and a high numbe
 - Deploy a virtual Hub, which is a Vnet used for the Azure Virtual WAN.
 - Next step would be to connect our Vnets to the virtual hub.
 
-### Network watcher
-Network watcher enables you to monitor and repair the network health of IaaS services, such as Virtual Machines, VPN Gateways, Load Balancers etc. It provides 3 important capabilities: Monitoring, Network diagnostic tools, and Traffic. See all the [documentation](https://learn.microsoft.com/en-us/azure/network-watcher/network-watcher-overview#monitoring). 
-
-**Monitoring**
-- Topology - Provides a visualization of the entire network for understanding network configurations. Provides an interactive space for understanding the resources and their relationships. 
-- Connectioin Monitor - It helps you understand the network performance between different endpoints in your network infrastructure. It monitors the connections on a continuous basis, as opposed to connection troubleshoot, which monitors at a point in time. 
-
-**Network diagnostic tools**
-- Next hop - This helps you to detect routing issues and to understand whether a packet of data is reaching its destination. It provides information about the next hop type, IP address, and the route table ID for a destination IP address. This feature is quite useful when we have a user-defined route in our architecture. If there's an intermediate step before the traffic reaches its destination i.e., a virtual network appliance, then the next hop feature within the Network Watcher is useful to verify the next hop.
-- Ip flow verify - This shows traffic filtering issues at the virtual machine level. This allows to see if a packet is allowed or denied to or from a virtual machine. If a packet is being denied due to a security group, it shows which rule is denying that packet.
-- Connection troubleshoot - Connection troubleshoot enables you to test a connection between a virtual machine, a virtual machine scale set, an application gateway, or a Bastion host and a virtual machine, an FQDN, a URI, or an IPv4 address. The test returns similar information returned when using the connection monitor capability, but tests the connection at a point in time instead of monitoring it over time.
-- Effective security rules - It allows you to view the effective security rules applied to a network interface. It shows you all security rules applied to the network interface, the subnet the network interface is in, and the aggregate of both.
-- Packet capture - It allows you to create packet capture sessions to track traffic to and from a virtual machine or virtual machine scale set. 
-- VPN troubleshoot - Allows you to troubleshoot virtual network gateways and their connections. 
-- NSG diagnostics - Similar to If Flow Verify, but with more functionalities. It provides information about whether a packet of data is allowed to denied to or from an IP address, IP prefix, or service tag. 
-
-**Traffic** Network Watcher offers two traffic tools that help you log and visualize network traffic: Flow logs, and Traffic analytics. 
-- Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log. 
-- Traffic Analytics - Provides rich visualizations of flow logs data
-### Azure Firewall
-The purpose of Azure firewall is to ensure outbound and inbound communications to the internet are safe. For this, we need to make sure it has a public ip address to have an interface to the internet.
-
 # Implement and manage storage in Azure
 ## Implement Azure Storage Account
 Azure Storage offers a scalable object store for data objects. It provides a file system service in the cloud, a messaging store, and a NoSql object store. Developers can use Azure Storage for working data. Working data includes websites, mobile applications and desktop applications. Azure Storage can be used to store 3 categories of data: 
@@ -458,11 +436,71 @@ We also need to explore the difference between RBAC and Entra Id roles.
 **Roles -** RBAC has built-in roles and has the possiblity to create custom roles as well, but with Entra Id offers administrator roles to manage Entra Id resoureces. Here's Microsoft Entra Id administrator roles: *Global admin*, *Application admin*, and *Application developer*.
 
 ## Create Azure users and groups in Microsoft Entra ID
-Imagine a scenario where you're a Microsoft Entra Id global administrator. A new team of developers are to be onboarded to develop and host an application in Azure. There are a number of external users who are to be consulted for the application design. Here's the goal: 
-- The goal is to create external users in Microsoft Entra Id for external users.  
+Imagine a scenario where you're a Microsoft Entra Id global administrator. A new team of developers are to be onboarded to develop and host an application in Azure. There are a number of external users who are to be consulted for the application design. Here's the goal:
+- The goal is to create external users in Microsoft Entra Id for external users.
 - We should also create groups to manage access to the application resource
 
-There are 3 ways we can assign roles to users: 
+There are 3 ways we can assign roles to users:
 - Direct assignment
 - Group assignment
 - Rule-based assignment
+
+# Monitor and back up Azure resources
+## Configure file and folder backups
+Azure backup replaces your off-site or on-premise backup solution with cloud-based solution that's secure, cost-effective and reliable.
+
+Azure backup offers multiple components or agents that you download and deploy on the appropriate server, computer, or in the cloud. The component, or agent that you choose depends on what you'd like to protect; all Azure backup components can be used to backup data to a **Recovery Service Vault**. Here are the benefits of Azure Backup:
+- Azure Backup provides an easy solution for backuing up your on-premises resources in the cloud. Get short- and long-term backups without having to deploy complex on-premise backup solutions.
+- Azure Backups provide independent and isolated backups to protect againt accidental data loss; all backups are stored in Azure Recovery Services vault with built-in management of recovery points.
+- You get unlimited data transfer for your inbound and outbound operations. Outbound refers to tranferring backup data from the vault during a restore operation. There's a cost associated with inport/export operations depending on the amount of data.
+- Security: Data encryption during transmission and storage of your data in the cloud. The encyption passthrough is stored locally without any access in the cloud.
+- Azure Backup provides application-consistent backups, which ensure extra fixes aren't required to restore the data. This leads to reduction in restoration time and that you can quickly return to the previous running state.
+- There's no limit in how long you'd like to keep the backups in the Services Recovery Vault. Azure backup has a limit of 9,999 recovery points per protected instance. 
+- It provides LRS (copies data 3 times in a single physical location within the primary regions) and GRS (copies the data to a seconday region) storage options for your backup data.
+
+**NOTE -** If you're using Azure Backup for Azure Files file shares, you don't need to configure the storage replication type. Azure Files backup is snapshot-based, and no data is transferred to the vault. Snapshots are stored in the same Azure storage account as your backed-up file share.
+
+### Microsoft Azure Recover Services Agent
+Azure uses a MARS agent for backing up files, folders, system data from your on-premise machines and azure VMs. This agent is to be installed on your windows machine.
+
+### Configure Azure Monitor
+Azure monitor is a comprehensive service that collects, analyzes and responds to relemetery data from both on-premise and cloud environments. An example scenario is to use this service to monitor the performance of your online applications and identify potential issues to maximize your application's availability and performance and improve customer experience. Here are 3 important capabilities of Azure monitor: 
+- **Collection:** It collects numerical data from your Azure resources
+- **Troubleshoot and visualize:** Azure Monitor Logs (log analytics) provides activity logs, diagnostic logs and telemetry logs and provides query capabilities to troubleshoot and visualize your log data.
+- **Alerts and actions:** Azure monitor allows you to set up alerts for gathered data to notify you when critical conditions arise. We can then design corrective actions in an automated way.
+
+#### Types of data
+There are two types of data captured by Azure Monitor: 
+- **Metrics:** Numerical values representing certain properties of a particular system at a point in time. They're lightweight and support near real-time scenarios.
+- **Logs:** Contain different kinds of data organized into records with different sets of properties for each type. Data like events and traces are stored as logs along with performance data so all the data can be combined for analysis. Log data in Azure Monitor is collected by log analytics that provides a rich query language for retrieving, analyzing and aggregating log data. We can save queries, visualize the data and create alert rules.
+
+### Configure Log Analytics
+Azure Monitor collects log data and stores it in tables. We can use log analytics in the portal and specify the inpit data sources and queries for data that is collected in Azure Monitor logs. Queries provide insight into the system infrastructure, such as assessing system updates or operational insidents. We can use the Kusto Query Language (KQL) for analyzing and aggregating log data. Here's an example of cases where log analytics within Azure Monitor can be helpful:
+- Abnormal behavior from a specific account
+- Users installing unapproved software
+- Unexpected system reboots or shutdowns
+- Evidence of security breaches
+- Specific problems in loosely coupled applications
+
+### Configure Network watcher
+Network watcher enables you to monitor and repair the network health of IaaS services, such as Virtual Machines, VPN Gateways, Load Balancers etc. It provides 3 important capabilities: Monitoring, Network diagnostic tools, and Traffic. See all the [documentation](https://learn.microsoft.com/en-us/azure/network-watcher/network-watcher-overview#monitoring). 
+
+**Monitoring**
+- Topology - Provides a visualization of the entire network for understanding network configurations. Provides an interactive space for understanding the resources and their relationships. 
+- Connectioin Monitor - It helps you understand the network performance between different endpoints in your network infrastructure. It monitors the connections on a continuous basis, as opposed to connection troubleshoot, which monitors at a point in time. 
+
+**Network diagnostic tools**
+- Next hop - This helps you to detect routing issues and to understand whether a packet of data is reaching its destination. It provides information about the next hop type, IP address, and the route table ID for a destination IP address. This feature is quite useful when we have a user-defined route in our architecture. If there's an intermediate step before the traffic reaches its destination i.e., a virtual network appliance, then the next hop feature within the Network Watcher is useful to verify the next hop.
+- Ip flow verify - This shows traffic filtering issues at the virtual machine level. This allows to see if a packet is allowed or denied to or from a virtual machine. If a packet is being denied due to a security group, it shows which rule is denying that packet. This feature is ideal to ensure correct implementation of your security rules.
+- Connection troubleshoot - Connection troubleshoot enables you to test a connection between a virtual machine, a virtual machine scale set, an application gateway, or a Bastion host and a virtual machine, an FQDN, a URI, or an IPv4 address. The test returns similar information returned when using the connection monitor capability, but tests the connection at a point in time instead of monitoring it over time.
+- Effective security rules - It allows you to view the effective security rules applied to a network interface. It shows you all security rules applied to the network interface, the subnet the network interface is in, and the aggregate of both.
+- Packet capture - It allows you to create packet capture sessions to track traffic to and from a virtual machine or virtual machine scale set. 
+- VPN troubleshoot - Allows you to troubleshoot virtual network gateways and their connections.
+- NSG diagnostics - Similar to If Flow Verify, but with more functionalities. It provides information about whether a packet of data is allowed to denied to or from an IP address, IP prefix, or service tag.
+
+**Traffic** Network Watcher offers two traffic tools that help you log and visualize network traffic: Flow logs, and Traffic analytics. 
+- Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log. 
+- Traffic Analytics - Provides rich visualizations of flow logs data
+
+### Azure Firewall
+The purpose of Azure firewall is to ensure outbound and inbound communications to the internet are safe. For this, we need to make sure it has a public ip address to have an interface to the internet.
