@@ -65,12 +65,3 @@ A shared access signature can take one of the following two forms:
 **Ad hoc SAS -** When you create an ad hoc SAS, the start time, expiry time, and permissions are specified in the SAS URI. Any type of SAS can be an ad hoc SAS.
 
 **Service SAS with stored access policy -** A stored access policy is defined on a resource container, which can be a blob container, table, queue, or file share. The stored access policy can be used to manage constraints for one or more service shared access signatures. When you associate a service SAS with a stored access policy, the SAS inherits the constraints—the start time, expiry time, and permissions—defined for the stored access policy.
-
-**Explain different redundancy solutions in Azure -**
-
-**Primary Region**
-Locally redundant storage (LRS): It copies your data 3 times within a single physical location in the primary region.
-Zone redundant storage (ZRS): It copies the storage account synchrounsly in 3 different Azure Availability Zones within the primary region.
-**Seconday Region**
-Geo redundant storage (GRD): It copies the data 3 times in a physical location in the primary region using LRS. It then copies the data to a physical location in the secondary region. 
-geo zone redundant zone - It copes the data across Azure Availability zones using ZRS, but it then creates a copy of the data in a physical location in a secondary regioin. 
