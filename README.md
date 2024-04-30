@@ -1,5 +1,5 @@
 # AZ-104
-This repository is to study and prepare for the AZ-104 microsoft certificate; we'll review the most important resources that are a target for this certification. They're the required components to become an Azure Administrator. 
+This repository is to study and prepare for the AZ-104 microsoft certificate; we'll review the most important resources that are a target for this certification. They're the required components to become an Azure Administrator.
 
 All the resources that are subject to this certification, such as networking resources, virtual machine, Azure Kubernetes etc. will be deployed and managed using Infrastructure as Code (IaC) concepts with Terraform as part of a CI/CD pipeline.
 
@@ -106,7 +106,9 @@ An Azure private link is an Azure service that allows you to access an Azure ser
 - Private endpoint is an interface that allows you to connect privately and securely to an Azure service through an Azure Private Link. A private endpoint is a private IP address within your virtual network that serves as an entry point for accessing specific Azure PaaS services.
 - When you create a private endpoint for a service, the traffic between your virtual network and the service traverses over the Microsoft backbone network, ensuring that the data never goes over the public internet.
 #### Difference between a Service Endpoint and a Private Endpoint
-service endpoints extend your virtual network's private address space to Azure services. With service endpoints, access to the Azure service is controlled by the service's firewall rules and virtual network rules. Service endpoints are useful for Azure platform services such as Azure Storage, Azure SQL Database, Azure Cosmos DB, etc., where we'd like to restrict their access to only azure virtual network resources. Private endpoints provide secure and private connectivity to specific Azure services by creating an interface in your virtual network. Private endpoints are suitable for scenarios where you need more secure and private access to Azure services, such as accessing Azure Storage or Azure SQL Database from within your virtual network without going over the public internet.
+In short, through a private link, we can connect to a target Azure service through a private endpoint, which is a private IP address connecting to the endpoint of your target resource. However, through a service endpoint, all private IP addresses in your Vnet can communicate with a target resource.
+
+Service endpoints extend your virtual network's private address space to Azure services. With service endpoints, access to the Azure service is controlled by the service's firewall rules and virtual network rules. Service endpoints are useful for Azure platform services such as Azure Storage, Azure SQL Database, Azure Cosmos DB, etc., where we'd like to restrict their access to only azure virtual network resources. Private endpoints provide secure and private connectivity to specific Azure services by creating an interface in your virtual network. Private endpoints are suitable for scenarios where you need more secure and private access to Azure services, such as accessing Azure Storage or Azure SQL Database from within your virtual network without going over the public internet.
 
 ## Configure Azure Load Balancer
 See the learning path to review this section.
@@ -228,17 +230,19 @@ In addition to forwarding traffic from users to the front-end servers, you can u
 The primary advantage of working with virtual machines is to have more control over installed software and configuration settings. Azure Virtual Machines supports more granular control than other Azure services, such as Azure App Service or Azure Cloud Services.
 
 ## Virtual Machine
-Imagine a scenario where we'd like to deploy a web application; for this, we would need servers to host the application, we would also need storage to store data associated with the application, and we also need networking; so, all the physical servers need to be part of a network. 
+Imagine a scenario where we'd like to deploy a web application; for this, we would need servers to host the application, we would also need storage to store data associated with the application, and we also need networking; so, all the physical servers need to be part of a network.
 
 Within Azure, we can take advantage of Cloud Computing concepts and provision a Virtual Machine in the cloud. In addition to the virtual machine, you will see other resources that get created as part of the virtual machine resource, such as the network interface, the disk, network security group, and the virtual network. Let's dive deeper into each components of our network resources:
 
 **VM Availability sets -** Availability set is a logical grouping of the virtual machines. It helps to improve the overall availability of the virtual machines. The VMs are hosted on a physical server in a data center. And if all the VMs hosting the application are within one single physical server, then the whole application might go down in case of failure or maintenance on that data center. In order to handle such a scnenario, we can make the VMs as part of an availability set. When we assign a virtual machine as part of an availability set, it gets assgined a ***fault*** and ***update*** domain. Update domain means that Azure will apply updates on the underlying infrastructure one domain at a time, and fault domain means that the VMs gets assigned to different power source and network domains. This ensures that VMs that are part of the same availability set are always available in case an update is required on the physical infrastructure or the power source and network has to be reset. For more details on availability sets and things to consider when using them, see [this documentation](https://learn.microsoft.com/en-us/training/modules/configure-virtual-machine-availability/3-setup-availability-sets).
 
-**NOTE -** In a proper design we need to separate application tiers, meaning that there VMs each in tier should have their own availability set. Each fault domain however, contains one vm from each tier. So, in case of a power outage or network issue, the whole application remains up & running. 
+**NOTE -** In a proper design we need to separate application tiers, meaning that there VMs each in tier should have their own availability set. Each fault domain however, contains one vm from each tier. So, in case of a power outage or network issue, the whole application remains up & running.
 
-**VM Availability zones -** This features help provides better availability for your application by protecting them from datacenter failures. Each Availability zone is a unique physical location in an Azure region. Each zone comprises of one or more data centers that has independent power, cooling, and networking. Using Availability Zones, you can be guaranteed an availability of 99.99% for your virtual machines. You need to ensure that you have 2 or more virtual machines running across multiple availability zones. availability set for each tier.
+**VM Availability zones -** This feature helps provide better availability for your application by protecting them from datacenter failures. Each Availability zone is a unique physical location in an Azure region. Each zone comprises of one or more data centers that has independent power, cooling, and networking. Using Availability Zones, you can be guaranteed an availability of 99.99% for your virtual machines. You need to ensure that you have 2 or more virtual machines running across multiple availability zones.
 
 **VM scale set -** One way to create an identical set of Virtual Machines to host an application is through the VM scale set. Instead of manually creating virtual machines to host the application, we can create a scale set resource that is responsible for creating the virtual machines and scaling the application in a horizontal way. Using this service, we can define rules for scaling, i.e., if CPU percentage of the initial VM reaches 75 due to additional load on that VM, go ahead and create an additional VM for horizontal scaling. The other way around is possible. Using this feature, it is possible to scale down the number of VMs. For more details, see the microsoft [documentation](https://learn.microsoft.com/en-us/azure/virtual-machine-scale-sets/overview). 
+
+**Site Recovery service -** Site Recovery helps ensure business continuity by keeping business apps and workloads running during outages. Site Recovery replicates workloads running on physical and virtual machines (VMs) from a primary site to a secondary location. When an outage occurs at your primary site, you fail over to a secondary location, and access apps from there. After the primary location is running again, you can fail back to it.
 
 ### Deploying a VM
 - Create an [Azure Virtual Network](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network.html) and provide a range of IP addresses available to resources within this Vnet using the CIDR notation. 
@@ -271,13 +275,12 @@ It's worth mentioning that the data associated to a disk hosted in a data center
 Additionally, users have the flexibility to manage their encryption keys using either ***platform-managed keys*** (automatically managed by Microsoft) or ***customer-managed keys***, which allow greater control and the ability to manage access controls using Azure Key Vault or Azure Key Vault Managed Hardware Security Module (HSM). Read the [documentation](https://learn.microsoft.com/en-us/azure/virtual-machines/disk-encryption) for more details.
 
 #### Using Customer Manager Encryption for Azure Managed Disk
-Many organizations prefer to use their own managed keys for encryption of disks attached to their Virtual Machine. Follow the below steps in Terraform:
+Many organizations prefer to use their own managed keys for encryption of disks attached to their Virtual Machine. Here's how we make sure the Azure managed disk is encrypted through customer managed encryption:
 - Once a key vault is created and in place, go ahead and create a [key vault key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key)
-- Create a [key vault encyption set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/disk_encryption_set)
-- Make sure the key vault encyption set has the required access to the key vault
-- Stop/deallocate the virtual machine and attach the key encryption set to the Azure Managed disk
-
-The above procedure allows us to use our own internal keys for encryption of data hosted in an Azure Managed Disk. We have managed all the above steps using Infrastructe as Code with Terraform. Follow the details under the ```tf/AZ-104/azure/Kv.tf``` and ```tf/AZ-104/azure/Disk.tf``` paths.
+- Create a [key vault encyption set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/disk_encryption_set) within the above key vault key.
+- Make sure the key vault encyption set has the required access to the key vault through the key vault access policies.
+- Attach the encryption set to the Azure managed disk 
+- And finally, attach the Azure manage disk to the virtual machine
 
 ### Stopping/de-allocating vs Restarting a VM
 When a VM is restarted, data within all OS disk, managed disk, and temporary disk will be intact; however, when a VM is stopped/deallocated, the data within the temporary disk is lost, but the data within OS and managed disk will still remain intact.
@@ -292,10 +295,10 @@ In the prior section when taking about VMs, we had a quick introduction about ce
 It's a service provided by Azure that allows secure RDP and SSH access to VMs within a Virtual Network. It acts as a gateway.
 
 ## Configure Azure App Service plans 
-Previously we discussed Virtual Machines, which give un a fine-grained control over the software configurations, installations etc. Using Azure App Service, the underlying compute infrastructure is abstracted away and is completely managed by Microsoft. Within an Azure App Service, we need to provision and define an Azure App Service Plan that defines the required compute infrastructure to run the application. One or more applications can be configured to run on the same Azure Service Plan. Multiple applications in the same plan share the same virtual machine instances. However, if the application is resource-intensive, with different scaling requirements or is supposed to be deployed in a different regiion, it's best to add it to a new service plan. 
+Previously we discussed Virtual Machines, which give un a fine-grained control over the software configurations, installations etc. Using Azure App Service, the underlying compute infrastructure is abstracted away and is completely managed by Microsoft. Within an Azure App Service, we need to provision and define an Azure App Service Plan that defines the required compute infrastructure to run the application. One or more applications can be configured to run on the same Azure Service Plan. Multiple applications in the same plan share the same virtual machine instances. However, if the application is resource-intensive, with different scaling requirements or is supposed to be deployed in a different regiion, it's best to add it to a new service plan.
 
 ### Plans and pricing
-We can configure a free, shared, basic, standard, premium, and isolated plan each suitable for a different kind of use case; read [this](https://learn.microsoft.com/en-us/training/modules/configure-app-service-plans/3-determine-plan-pricing) page for more details. 
+We can configure a free, shared, basic, standard, premium, and isolated plan each suitable for a different kind of use case; read [this](https://learn.microsoft.com/en-us/training/modules/configure-app-service-plans/3-determine-plan-pricing) page for more details.
 
 ## Configure Azure App Service
 ### Web App Loggin
@@ -335,15 +338,6 @@ We can use Azure Application Insight, which is a feature of Azure Monitor for mo
 
 ### Container groups
 Multi-container groups are useful when you want to divide a single functional task into a few container images. The images can be delivered by different teams and have separate resource requirements. Containers in a group can use Azure file shares as volume mounts. Each container in the group mounts one of the file shares locally.
-
-## Deploying an app into Azure Web App Service
-
-
-
-
-
-
-
 
 ## Point to site VPN connection
 Point to site VPN connections allow you to establish a connection between Azure Virtual Network and client machines. Imagine a scenario where we'd like to establish a connection between a client machine and a web application running on a Virtual Machine in an Azure Virtual Network. Normally, such connection is not possible, since no public IP is assined to this Virtual Machine. In such cases, we can use something known as Point to site VPN connection. Here are the required steps to implement this solution on a high level: 
@@ -413,6 +407,14 @@ Azure blob storage supports lifecycle management rules; we can use it to transit
 # Manage identities and governance in Azure
 ## Configure Microsoft Entra ID
 Microsoft Entra ID is a cloud-based identity and access management service. See [this](https://learn.microsoft.com/en-us/training/modules/configure-azure-active-directory/2-describe-benefits-features) documentation for details on its capabilities.
+
+### Resource Locking
+As an administrator you can lock your resources to protect them against modifications or deletions. Resource locking will override any user permission.
+- Use the **CanNotDelete** lock to authorize users to read and modify resources, but not delete them. 
+- Use the **ReadOnly** lock to authorize users to only read the resources, but not modify nor delete them. 
+
+Unlike RBAC, locks are implemented across a scope for all users and groups. 
+
 ## Configure role-based access control
 We can use role-based access control to ensure resources are protected, but also certain users can access them. So, we can create roles and assign them to different users allowing them to have limited access to certain resources. So with this, we can decide and manage who can access to Azure resouces. We can also control what operations those users can do on Azure resources. Here are certain important concepts to learn:
 - Security Principal: An object that can request access to a resource: User, group, service principal, and managed identity
@@ -445,6 +447,17 @@ There are 3 ways we can assign roles to users:
 - Group assignment
 - Rule-based assignment
 
+## Configure Azure Policy
+You can define Azure Policy to define compliance conditions, and the actions/effects to take when those compliances are not met. Below are the fields within policy definitions. See [the documentation](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure-basics#policy-type) for more details. 
+- ```DisplayName```: Used to identify the policy
+- ```Description```: Provides context into the policy
+- ```Mode```: Determines the type of resources affected by the policy: ```ìndexed``` refers to resources that support tags and locations, and ```All``` would target all resources. An example scenario when ```indexed``` mode would be suitable is when enforcing tags and locations for the resources.
+- ```Metadata```: 
+- ```Parameters```:
+- ```PolicyRule```:
+ - ```Logical Operator```
+ - ```Effect```
+
 # Monitor and back up Azure resources
 ## Configure file and folder backups
 Azure backup replaces your off-site or on-premise backup solution with cloud-based solution that's secure, cost-effective and reliable.
@@ -469,10 +482,30 @@ Azure monitor is a comprehensive service that collects, analyzes and responds to
 - **Troubleshoot and visualize:** Azure Monitor Logs (log analytics) provides activity logs, diagnostic logs and telemetry logs and provides query capabilities to troubleshoot and visualize your log data.
 - **Alerts and actions:** Azure monitor allows you to set up alerts for gathered data to notify you when critical conditions arise. We can then design corrective actions in an automated way.
 
-#### Types of data
-There are two types of data captured by Azure Monitor: 
-- **Metrics:** Numerical values representing certain properties of a particular system at a point in time. They're lightweight and support near real-time scenarios.
-- **Logs:** Contain different kinds of data organized into records with different sets of properties for each type. Data like events and traces are stored as logs along with performance data so all the data can be combined for analysis. Log data in Azure Monitor is collected by log analytics that provides a rich query language for retrieving, analyzing and aggregating log data. We can save queries, visualize the data and create alert rules.
+#### [Alerts in Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview)
+You can define alerts on both metrics and log data in Azure Monitor. An alert rule consists of the following:
+- The resource to be monitored, i.e., an Azure Virtual Machine
+- The singnal or data from the resouce, i.e., CPU utilization within an Azure VM
+- And the condition under which an alert should be fired, i.e., if cpu utilization is above 80 %
+- If we have more than one resource to be monitored, the alert rule condition is evaluated for each resource separately
+
+##### Action Groups
+- Once an alert is triggered, it will trigger an action group and updates the alert state for that resource. The alert instances of all your resource are stored for 30 days, and deleted after this 30-day retention period.
+
+##### different alert types
+- Metric alerts: Metric alerts evaluate resource metrics at regular intervals.
+- Log search alerts: With log search alerts, you can use log analytics queries to evaluate resource logs at a predefined frequency.
+- Activity log alerts: Activity log alerts are triggered when new log events are produced that match the predefined condition. Resource health alert and service health alerts are activity log alerts that monitor the health of your resource and services.
+- Smart detection alerts: Smart detection alert on application insight resource warns you automatically on potential performence issues and anomolies in your web application.
+
+##### Alerts and state
+- Stateless alerts: These alerts are triggered whenever the condition is matched, even if fired previously. All activity log alerts are stateless.
+- Stateful alerts: There are triggered once the conditions are matched, but won't get triggered again unless the alert is resovled. Stateful alerts keep track of the alert status; once fired, they'll hold a "fired" status, and when resolved, the alerts send a resolved notification and update the status to resolved. 
+
+### Extending Azure Monitor: 
+Because Azure Monitor is automatic, it begins to collect data as soon as the resources, like Azure VM, are created. We can extend data that is collected by Azure monitor by:
+- Enabling diagnostics: For some resources like Azure SQL, you only have access to the full version of logs when diognostics is enabled. 
+- Using an agent: For Virtual Machines, you can install a log analytics agent and configure it to send data to Log Analytics workspace. By doing this, you increase the extent of data collected in Azure Monitor.
 
 ### Configure Log Analytics
 Azure Monitor collects log data and stores it in tables. We can use log analytics in the portal and specify the inpit data sources and queries for data that is collected in Azure Monitor logs. Queries provide insight into the system infrastructure, such as assessing system updates or operational insidents. We can use the Kusto Query Language (KQL) for analyzing and aggregating log data. Here's an example of cases where log analytics within Azure Monitor can be helpful:
@@ -481,6 +514,12 @@ Azure Monitor collects log data and stores it in tables. We can use log analytic
 - Unexpected system reboots or shutdowns
 - Evidence of security breaches
 - Specific problems in loosely coupled applications
+
+### Configure Alerting
+Here are 3 alert types: 
+- **Metrics alerts:** Provide an alert trigger when a specified threshold is exceeded. For example, a metric alert can notify you when CPU usage is greater than 95 percent. 
+-**Activity log alert:** Notifies you when a resource changes state, i.e., when a resource has been deleted.
+- **Log alerts:** This is based on things written to log files. For example, a log alert can notify you when a web server has returned a number of 404 or 500 responses.
 
 ### Configure Network watcher
 Network watcher enables you to monitor and repair the network health of IaaS services, such as Virtual Machines, VPN Gateways, Load Balancers etc. It provides 3 important capabilities: Monitoring, Network diagnostic tools, and Traffic. See all the [documentation](https://learn.microsoft.com/en-us/azure/network-watcher/network-watcher-overview#monitoring). 
@@ -498,9 +537,43 @@ Network watcher enables you to monitor and repair the network health of IaaS ser
 - VPN troubleshoot - Allows you to troubleshoot virtual network gateways and their connections.
 - NSG diagnostics - Similar to If Flow Verify, but with more functionalities. It provides information about whether a packet of data is allowed to denied to or from an IP address, IP prefix, or service tag.
 
-**Traffic** Network Watcher offers two traffic tools that help you log and visualize network traffic: Flow logs, and Traffic analytics. 
-- Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log. 
+**Traffic** Network Watcher offers two traffic tools that help you log and visualize network traffic: Flow logs, and Traffic analytics.
+- Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log.
 - Traffic Analytics - Provides rich visualizations of flow logs data
 
 ### Azure Firewall
 The purpose of Azure firewall is to ensure outbound and inbound communications to the internet are safe. For this, we need to make sure it has a public ip address to have an interface to the internet.
+
+# Questions
+**What's a stored access policy?** Provides an additional level of security over service-level shared access signature (SAS) tokens. You'd be able to change start time, expiry time or permission for a signature; useful for scenarios where the security requirements could change without having to recreate the token. See the [doc](https://learn.microsoft.com/en-us/rest/api/storageservices/define-stored-access-policy).
+
+**What is object replication in Azure Storage:** Object replication asynchronously copies block blobs between a source storage account and a target one. For object replication, **change feed** and **blob versioning** must be enabled. Object replication only copies objects after replication, it does not copy pre-existing objects. 
+
+**What is Azure file snapshot?** Azure Files provides the capability to take snapshots of file shares. Share snapshots capture the share state at that point in time. See this [doc](https://learn.microsoft.com/en-us/azure/storage/files/storage-snapshots-files) for example scenarios.
+
+**What can you do with Bicep?** 
+- Azure CLI can be used to directly convert ARM template JSON files to Bicep files.
+- Bicep files can be deployed to Azure without first converting them to ARM templates, as Azure CLI and PowerShell can handle the transpilation for you.
+- A Bicep file can also be translated to its equivalent ARM template, allowing users to see what the ARM JSON representation would look like.
+- Validate a Bicep file using Azure PowerShell without deploying it. Use the what-if operation to verify that the Bicep file makes the changes that you expect.
+
+**How can you ensure the confidentiality and security of data at rest within your Azure virtual machines**
+- Azure Disk Encryption helps protect and safeguard your data to meet your organizational security and compliance commitments. It uses the BitLocker feature of Windows and the DM-Crypt feature of Linux to provide volume encryption for the OS and data disks of Azure VMs.
+- Managed disks offer better reliability for Availability Sets by ensuring that the disks of VMs in an Availability Set are sufficiently isolated from each other to avoid a single point of failure.
+
+**Containerized Application Workflow**
+- Azure Container Registry is a managed, private Docker registry service based on the open-source Docker Registry 2.0. It enables you to store and manage container images across all types of Azure deployments.
+
+- Azure Container Apps allows you to build, deploy, and scale containerized applications quickly, and it supports customization of scaling rules.
+
+**How can we optimize a mission-critical Azure App Service for security, continuity, and agility?**
+- Mapping a custom domain and configuring a managed certificate enhances the trustworthiness and security of the site.
+- Regular backups ensure data integrity and availability.
+- Deployment slots allow for testing in a near-production environment, improving deployment agility.
+- Azure Private Link enhances security by allowing private connectivity from a virtual network to Azure platform as a service (PaaS) services.
+
+**A few actions you can do with log alerts:**
+- You can define metric alerts using log queries.
+- Log alerts execute log queries at regular intervals, creating an alert if the results match certain conditions.
+- Log alerts work for multiple resources, not just virtual machines.
+- Action groups specify the actions to be taken when an alert rule fires.
