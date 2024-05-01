@@ -8,7 +8,7 @@ All the resources that are subject to this certification, such as networking res
 This resources represents a virtual network in Azure, which is a logical isolated network in which Azure services are deployed. Vnets allow your Azure Services to securely communicate with one another, the internet, and on-premise networks. When defining a VNet, we need to specify an ip address space, which is a range of ip addresses available to resources within the Vnet. 
 
 ## IP address space
-An IP address is 32-bit number represented as numbers in a human-readable way. An IP address consists of a network and a host portion. The network portion of an IP address helps identify which network a device belongs to; so all devices within a subnet have the same network portion; the host portion helps to identify the device within a network.
+An IP address is a 32-bit number represented in a human-readable way. An IP address consists of a network and a host portion. The network portion of an IP address helps identify which network a device belongs to; so all devices within a subnet have the same network portion; the host portion helps to identify the device within a network.
 
 ### Subnet mask
 A subnet mask determines the boundary between the network and host portions of an IP address. So, by comparing a subnet mask with the IP address, we can figure out the portion of the IP address that belongs to the network, and the portion that belongs to the host. With this knowledge, we can then figure out the number of possible hosts (IP addresses) within this network. As an exmple, consider the IP address ```192.168.1.1``` with the subnet mask of ```255.255.255.0```.
@@ -16,13 +16,13 @@ A subnet mask determines the boundary between the network and host portions of a
 In binary, the IP address ```192.168.1.1``` is represented as ```11000000.10101000.00000001.00000001```, and the subnet mask ```255.255.255.0``` is represented as ```11111111.11111111.11111111.00000000```. By comparing the two, we can see that the first 24 bits is the network portion of the IP, and the digit 1 is the device id.
 
 ### CIDR Notation
-using CIDR notation, we can provide a range of IP address available to a virtual network. In CIDR notation, an IP address is followed by a forward slash ("/") and a number, which represents the length of the routing prefix, in other words, the number after the forward slash represents the length of the network portion of the IP address. So, the lower that number, the higher the number of hosts, devices or resources that can be accommodated within that network. The formula for calculating the size of a network is 2^(32 - prefix length). So, in an address range ```10.0.0.0/16```, 2^16 = 65536 devices can fit into this network, but in an address range of ```10.0.0.0/24```, only 2^8 = 256 IP addresses are available within the network, since the first 24 bits are taken by the network portion of the IP, and only the last digit is associated to the device. Compared to the subnet mask, it provides a simpler way of determining the IP address space.
+using CIDR notation, we can provide a range of IP addresses available to a virtual network. In CIDR notation, an IP address is followed by a forward slash ("/") and a number, which represents the length of the routing prefix, in other words, the number after the forward slash represents the length of the network portion of the IP address. So, the lower that number, the higher the number of hosts, devices or resources that can be accommodated within that network. The formula for calculating the size of a network is 2^(32 - prefix length). So, in an address range ```10.0.0.0/16```, 2^16 = 65536 devices can fit into this network, but in an address range of ```10.0.0.0/24```, only 2^8 = 256 IP addresses are available within the network, since the first 24 bits are taken by the network portion of the IP, and only the last digit is associated to the device. Compared to the subnet mask, it provides a simpler way of determining the IP address space.
 
 ### Private and public ip addresses
-Private IP addresses are deciated to private communications between resources within a Virtual Network; public ip addresses on the other hand, are a separate resource and are used for inbound communications from the internet to the resource. So, we can deploy a public ip address, attach it to a network interface, which is itself attached to a VM, to allow inbound communications to it from the internet.
+Private IP addresses are dedicated to private communications between resources in a Virtual Network; public ip addresses on the other hand, are a separate resource and are used for inbound communications from the internet to the resource. So, we can deploy a public ip address, attach it to a network interface, which is itself attached to a VM, to allow inbound communications to it from the internet.
 
 ### Secondary interface attached to a VM
-As discussed in the previous chapter, a network interface allows a VM to communictate within resources in a Vnet, on-premise resources and even the internet. There are some scnenarios where we would neet to attach a secondary network interface to a virtual machine. One network interface can be attached to a public ip allowing inbound communication with the internet, and the other network interface could be responsible to pass that traffic to other subnets. So, in certain architectural designs, a primary subnet can be dedicated to communicate with the internet.
+As discussed in the previous chapter, a network interface allows a VM to communictate within resources in a Vnet, on-premise resources and even the internet. There are some scnenarios where we would need to attach a secondary network interface to a virtual machine. One network interface can be attached to a public ip allowing inbound communication with the internet, and the other network interface could be responsible to pass that traffic to other subnets. So, in certain architectural designs, a primary subnet can be dedicated to communicate with the internet.
 
 ## Azure Subnets 
 Subnets are a subdivision of the virtual network and is used to divide the Vnet into smaller and more manageable pieces. Subnets have their own ip ranges, that is a subset of the ip ranges of the Vnet. Here are the benefits of subnets:
@@ -114,7 +114,23 @@ Service endpoints extend your virtual network's private address space to Azure s
 See the learning path to review this section.
 
 ## Configure Azure Application Gateway
-See the learning path to review this section. Review the difference between the load balancer and Azure Application Gateway.
+See the learning path to review this section. Review the difference between the load balancer and Azure Application Gateway. Here are some of the most important properties of Azure Application Gateway. See this [doc](https://learn.microsoft.com/en-us/azure/application-gateway/features#multiple-site-hosting) for more details: 
+- **Autoscaling:** Application gateway standard_v2 supports scaling up & down based on traffic load patterns. Autoscaling also removes the requirement to choose deployment size or instance count upon provisioning. 
+- **Zone redundancy:** Application gateway can span across multiple availability zones offering better fault resiliency.
+- **Static VIP:** The standard_v2 SKU of Application Gateway support static virtual IP, and even during potential changes and updates, its VIP remains constant, providing more stability over its networing and routing capabilities.
+- **Web Application Firewall:** Azure Application Gateway provides a web application firewall for your web applications. This feature provides a centralized protection for your web applications simplifying security management and maintanence of your backend applications.
+- **URL-based routing:** Allows you to route incoming request to the backend servers based on the path of the URL. For example, requests to ```www.example.com/images*``` could be routed to one VM, and requests to ```www.example.com/videos*``` could be routed to another.
+- **Multi-site hosting:** With Application Gateway, you can configure routing based on host name or domain name for routing to multiple web applications using the same application gateway. For example, you can configure routing requests to ```http://contoso.com``` to one server, and requests to  ```http://fabrikam.com``` to another.
+- **Redirection:** A common scenario for many web application is the automatic support for HTTP to HTTPS redirection to make sure all communications between the application and the client occurs over a an encrypted path. Here are all the redirection capabilities of Azure Application Gateway: 
+    - Redirection from one port to another, this allows redirecting from http to https. 
+    - Path-based redirection, i.e., redirecting from http to https only on specific site are, like when ```/site/*``` is reached. 
+- **Session affinity:** The cookie-based session affinity is useful when a user needs to be routed on a specific backend server for processing.
+- **Custom error pages:** Creating custom error pages showing your brand, instead of the default error page.
+- **Connection draining:** Help you with graceful removal of backend pool memebers during planned updates or health probe problems.
+- **Rewrite HTTP headers and URL**
+- **Sizing:** Application gateway standard_vs can be configured for autoscaling and fixed-size deployments.
+
+
 
 ## Design an IP addressing schema for your Azure deployment
 When migrating to the cloud, you need to plan private and public IP addresses so you won't run out of available IP addresses and capacity for future growth in the future. A good IP address scheme provides flexibility, room for growth, and integration with on-premise networks. 
@@ -577,3 +593,10 @@ The purpose of Azure firewall is to ensure outbound and inbound communications t
 - Log alerts execute log queries at regular intervals, creating an alert if the results match certain conditions.
 - Log alerts work for multiple resources, not just virtual machines.
 - Action groups specify the actions to be taken when an alert rule fires.
+
+**Can a VM with a basic Public IP address connect to a standard load balancer?**
+- No, if we have a standard load balancer, and the backend VMs have a public IP address, it also has to be a standard IP address.
+
+**Azure Web App and Azure Application Gateway**
+- Imagine a scenario where requests to ```https://cloudportalhub.com``` should be routed to one Azure Web App, and the requests for ```https://cloudhublearning.com``` should be routed to another one; in this scenario, we'd use the [Multiple-site hosting](https://docs.microsoft.com/en-us/azure/application-gateway/features#multiple-site-hosting) feature of Azure Application Gateway.
+- There's also the url-based routing in Application Gateway, which is for scenarios where you'd like to route incoming requests based on the url paths; for example, requests to ```http://contoso.com/video/*``` can be routed to one Azure Web App, and the requests for ```http://contoso.com/images/*``` can be routed to another one. Note the difference between the multi-site hosting and url-path based features.
