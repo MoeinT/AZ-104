@@ -81,6 +81,8 @@ There are three methods in extending Vnet peerring:
 
 - **Hub and Spoke Networks -** The hub and spoke architecture is a network topology where multiple smaller networks (spokes) are connected to a central, larger network (hub). In the context of Azure VNets, this architecture typically involves one central VNet (the hub) connected to multiple VNets (the spokes). By setting up a hub VNet and establishing peering connections between the hub VNet and each spoke VNet (A, B, and C), you create a centralized point for communication between all VNets involved. This allows communication between any spoke VNet and the hub VNet. However, direct communication between spoke VNets (e.g., A to C) typically requires traffic to route through the hub VNet.
 
+The Virtual WAN architecture is a hub and spoke architecture with built-in scale and performance capabilities. See [this documentation](https://learn.microsoft.com/en-us/azure/virtual-wan/virtual-wan-about) for more details. 
+
 - **Service chaining -** Service chaining involves the sequential forwarding of network traffic through a series of network services or appliances. In Azure, this might involve routing traffic through various Azure services, such as firewalls, load balancers, or other network appliances. By configuring service chaining, you can define a path for network traffic to follow as it moves between different VNets or resources within the same VNet. This allows you to apply specific network services or policies to the traffic as it traverses the network.
 
 ## Configure network routing and endpoints
@@ -94,9 +96,19 @@ Azure uses system routes to direct traffic between virtual machines, on-premise 
 - A route table contains a set of rules about how traffic should be forwarded within a Vnet. Each route table is associated with a subnet. When a packet is leaving a subnet, it gets matched against the associated route table, and if it's not found there, it'll be dopped. 
 
 ### User defined routes
-User defined routes provide the capability to define custom routes to direct traffic in a Virtual Network. Instead of solely relying of Azure's automatic routing, we can specify a next hop target based on our business requirements. So, it provides a more granular control over how traffic should be routed between different components of the infrastructure. 
+User defined routes provide the capability to define custom routes to direct traffic in a Virtual Network. Instead of solely relying of Azure's automatic routing, we can specify a next hop target based on our business requirements. So, it provides a more granular control over how traffic should be routed between different components of the infrastructure.
 
 **Business scenario -** Network Virtual Appliance (NVA) is a virtual machine that performs certain network functions like routing, firewalling, or WAN optimization. Imagine a scnerio where we'd like to forward traffic between a VM at the frondend and a VM at the backend; however, we'd like to perform certain network functions before the traffic reaches the destination; in this case, we can take advantage of a user-defined route to make sure the traffic flows through a VNA as a hop target before reaching the target VM.
+
+#### Important parameters within a route table
+- **Address Prefix:** When creating a route table we need to specify something known as the address prefix. This referes to the destination ip address range for which the route within this route table is applied for.
+- **Next Hop Type:** Refers to the type of network the traffic should be forwarded to after matching a route in the route table. Possible values are ```Virtual network gateway```, ```Internet```, ```Virtual appliance``` and ```None```.
+
+Imagine a scenario where we'd like to route all outbound communications to the internet to go throught a central VM, then the address prefix for the route we create would equal 0.0.0.0/0, and the next hop type would be internet as well.
+
+In another scenario where we'd like all communications within a Vnet to go through a virtual network appliance, the the address prefix within the route table we create would equal the IP address range of the Vnet, i.e., 10.0.0.0/16, and the next hop type would be virtual appliance.
+
+**NOTE:** For cases where the next hop type is a virtual appliance, we'll have to make sure IP forwarding is enabled on the network inteface of the virtual machine in order to be able to forward the incoming traffic to the destination.
 
 ### Service Endpoints
 Virtual Network service endpoints provide direct and secure connectivity to Azure services over an optimized route over Azure backbone network. Endpoints allow you to secure your critical Azure service resources to only your virtual networks. Service Endpoints enables private IP addresses in the VNet to reach the endpoint of an Azure service without needing a public IP address on the VNet.
@@ -109,9 +121,6 @@ An Azure private link is an Azure service that allows you to access an Azure ser
 In short, through a private link, we can connect to a target Azure service through a private endpoint, which is a private IP address connecting to the endpoint of your target resource. However, through a service endpoint, all private IP addresses in your Vnet can communicate with a target resource.
 
 Service endpoints extend your virtual network's private address space to Azure services. With service endpoints, access to the Azure service is controlled by the service's firewall rules and virtual network rules. Service endpoints are useful for Azure platform services such as Azure Storage, Azure SQL Database, Azure Cosmos DB, etc., where we'd like to restrict their access to only azure virtual network resources. Private endpoints provide secure and private connectivity to specific Azure services by creating an interface in your virtual network. Private endpoints are suitable for scenarios where you need more secure and private access to Azure services, such as accessing Azure Storage or Azure SQL Database from within your virtual network without going over the public internet.
-
-## Configure Azure Load Balancer
-See the learning path to review this section.
 
 ## Configure Azure Application Gateway
 See the learning path to review this section. Review the difference between the load balancer and Azure Application Gateway. Here are some of the most important properties of Azure Application Gateway. See this [doc](https://learn.microsoft.com/en-us/azure/application-gateway/features#multiple-site-hosting) for more details: 
@@ -237,7 +246,9 @@ Another important feature of load balancers is that they use a hash-based algori
 - ***Destinatioin -*** IP: The destination IP of the requesting client
 - ***Protocol type -*** The specified protocol type, TCP or UDP
 
-Also, there are two tiest for ALB; read in more details in [this](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/2-load-balancer-features) documentation.
+Also, there are two tiers for ALB; read in more details in [this](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/2-load-balancer-features) documentation.
+
+**NOTE:** For basic load balancers, VMs need to be part of the same availability set or availability zone to be able to be accommodated into the backend pool. 
 
 ### Internal load balancer
 In addition to forwarding traffic from users to the front-end servers, you can use Azure Load Balancer to forward traffic from front-end servers evenly to the backend servers. In some applications, the frontend calls for business logic in servers hosted in the middle tier. You'd want to make sure the middle tier is also as scalable and resilient as the middle tier; in order to do so, we can use an internal load balancer. See [this](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/5-internal-load-balancer) page to read more on an interesting scenario where internal load balancers are very useful.
@@ -361,25 +372,21 @@ Point to site VPN connections allow you to establish a connection between Azure 
 - Create an empty Gateway subnet to host the VMs that are responsible for the routing of traffic between client machines and the VMs in the Virtual Network.
 - In order to connect the client machines from the internet onto the VNet through the VPN Gateway, there should be a sort of authentication mechanism in place. One way for clients machines to authenticate into the Vnet is through certifications. So, there should be a certificate in place in the client machine for the Vnet to recognize. See the Microsoft [documentation](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-certificates-point-to-site) on how we can generate a certification for authentication.
 
-Once a VPN connection has been properly established, we would be able to log into the application running on a VM in the Vnet directly from our machine.
+Once a VPN connection has been properly established, we would be able to log into the application running on a VM in the Vnet directly from our machine. P2S VPN is also a useful solution to use instead of S2S VPN when you have only a few clients that need to connect to a VNet.
 
 ## Site to site VPN connection
 There are certain scenarios where we would like to connect an entire on-premises network, i.e., client machines, servers, to the workloads in the Vnet. For such scenarios, we can make use of site-to-site VPN connection. Here are the requirements for establising a site-to-site VPN connection.
 
 - On the on-premise side, you need to have a VPN device that can route traffic via the Internet onto the VPN gateway in Azure. The VPN device can be a hardware device like a Cisco router or a software device ( e.g Windows Server 2016 running Routing and Remote services). The VPN device needs to have a publically routable IP address.
-
 - The subnets in your on-premise network must not overlap with the subnets in your Azure virtual network.
-
 - The Site-to-Site VPN connection uses an IPSec tunnel to encrypt the traffic.
-
 - The VPN gateway resource you create in Azure is used to route encrypted traffic between your on-premise data center and your Azure virtual network.
-
 - There are different SKU's for the Azure VPN gateway service. Each SKU has a different pricing and attributes associated with it. See the [doc](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpn-gateway-settings). 
 
 **NOTE -** Site-to-site VPNs use IPSEC to provide a secure connection between your corporate VPN gateway and Azure.
 
 ## Azure Virtual WAN
-There are certain scenarios where we would like to connect a range on on-premise infrastructure, i.e., office branches, to multiple Vnets in Azure. One way to tackle this is to use a VPN Gateway to establish a connection between an on-premise resource to a Vnet, and establish a Vnet peeting to the second Vnet. This is due to the fact that VPN Gateways can only establish a connection to maximum one Azure Vnet. 
+There are certain scenarios where we would like to connect a range of on-premise infrastructure, i.e., office branches, to multiple Vnets in Azure. One way to tackle this is to use a VPN Gateway to establish a connection between an on-premise resource to a Vnet, and establish a Vnet peeting to the second Vnet. This is due to the fact that VPN Gateways can only establish a connection to maximum one Azure Vnet. 
 
 For such scenarios where there are a high number of Azure Vnets and a high number of office locations, we can make use of Azure Virtual WAN. In kind of a mesh network, you can connect your multiple virtual networks onto the WAN. Here's how to simulate a scenario for Azure Virtual WAN:
 - Create two Vnets each hosting a VM that have IIS installed on them. These Vnets have no peerings between them.
@@ -554,7 +561,7 @@ Network watcher enables you to monitor and repair the network health of IaaS ser
 - NSG diagnostics - Similar to If Flow Verify, but with more functionalities. It provides information about whether a packet of data is allowed to denied to or from an IP address, IP prefix, or service tag.
 
 **Traffic** Network Watcher offers two traffic tools that help you log and visualize network traffic: Flow logs, and Traffic analytics.
-- Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log.
+- NSG Flow logs - Helps you to log information about your Azure IP traffic and stores the data in Azure storage. You can log IP traffic flowing through a network security group or Azure virtual network. So, if you want to get the entire log information about traffic flow through a network security group, we an take advantage of IP Flow Log.
 - Traffic Analytics - Provides rich visualizations of flow logs data
 
 ### Azure Firewall
@@ -600,3 +607,18 @@ The purpose of Azure firewall is to ensure outbound and inbound communications t
 **Azure Web App and Azure Application Gateway**
 - Imagine a scenario where requests to ```https://cloudportalhub.com``` should be routed to one Azure Web App, and the requests for ```https://cloudhublearning.com``` should be routed to another one; in this scenario, we'd use the [Multiple-site hosting](https://docs.microsoft.com/en-us/azure/application-gateway/features#multiple-site-hosting) feature of Azure Application Gateway.
 - There's also the url-based routing in Application Gateway, which is for scenarios where you'd like to route incoming requests based on the url paths; for example, requests to ```http://contoso.com/video/*``` can be routed to one Azure Web App, and the requests for ```http://contoso.com/images/*``` can be routed to another one. Note the difference between the multi-site hosting and url-path based features.
+
+**How to deploy a multi-container group?**
+- See [this](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-multi-container-yaml) documentation.
+
+**How would new Azure Policies affect existing resources?**
+- The inclusion of new Azure policies don't have an impact on existing resources.
+
+**Backup reports for recovery services vault**
+- You can choose to send diagnostics data for an Azure Recovery Services vault to either a storage account or to a Log Analytics workspace. From this you can then view Backup reports. What's important is that the Storage Account needs to be in the same location as the Services Recovery Vault. However, when it comes to the log analytics workspace, it can be in any location.
+
+**Backup policy**
+- When you're configuring a backup for VMs, you can set up a backup policy in which you can determine the backup schedule.
+
+**What does a user access administrator role entail?**
+- The User Access Administrator role enables the user to grant other users access to Azure resources.
