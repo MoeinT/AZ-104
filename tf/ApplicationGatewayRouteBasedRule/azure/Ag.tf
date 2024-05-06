@@ -90,7 +90,7 @@ module "ApplicationGateway" {
       redirect_configuration = {
         (local.redirect_configuration_name) = {
           redirect_type = "Permanent"
-          target_url = "https://stacksimplify.com/azure-aks/azure-kubernetes-service-introduction/"
+          target_url    = "https://stacksimplify.com/azure-aks/azure-kubernetes-service-introduction/"
         }
       }
     },
