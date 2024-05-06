@@ -18,4 +18,5 @@ resource "azurerm_virtual_network_peering" "VnetPeering" {
   resource_group_name       = each.value.resource_group_name
   virtual_network_name      = each.value.virtual_network_name
   remote_virtual_network_id = each.value.remote_virtual_network_id
+  allow_forwarded_traffic   = lookup(each.value, "allow_forwarded_traffic", false)
 }

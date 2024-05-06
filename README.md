@@ -139,8 +139,6 @@ See the learning path to review this section. Review the difference between the 
 - **Rewrite HTTP headers and URL**
 - **Sizing:** Application gateway standard_vs can be configured for autoscaling and fixed-size deployments.
 
-
-
 ## Design an IP addressing schema for your Azure deployment
 When migrating to the cloud, you need to plan private and public IP addresses so you won't run out of available IP addresses and capacity for future growth in the future. A good IP address scheme provides flexibility, room for growth, and integration with on-premise networks. 
 ### Integrate Azure with on-premises networks
@@ -253,6 +251,40 @@ Also, there are two tiers for ALB; read in more details in [this](https://learn.
 ### Internal load balancer
 In addition to forwarding traffic from users to the front-end servers, you can use Azure Load Balancer to forward traffic from front-end servers evenly to the backend servers. In some applications, the frontend calls for business logic in servers hosted in the middle tier. You'd want to make sure the middle tier is also as scalable and resilient as the middle tier; in order to do so, we can use an internal load balancer. See [this](https://learn.microsoft.com/en-us/training/modules/improve-app-scalability-resiliency-with-load-balancer/5-internal-load-balancer) page to read more on an interesting scenario where internal load balancers are very useful.
 
+## Point to site VPN connection
+Point to site VPN connections allow you to establish a connection between Azure Virtual Network and client machines. Imagine a scenario where we'd like to establish a connection between a client machine and a web application running on a Virtual Machine in an Azure Virtual Network. Normally, such connection is not possible, since no public IP is assined to this Virtual Machine. In such cases, we can use something known as Point to site VPN connection. Here are the required steps to implement this solution on a high level: 
+- Create an Virtual Private Network Gateway resource and attach it to the virtual network hosting the VM
+- Create an empty Gateway subnet to host the VMs that are responsible for the routing of traffic between client machines and the VMs in the Virtual Network.
+- In order to connect the client machines from the internet onto the VNet through the VPN Gateway, there should be a sort of authentication mechanism in place. One way for clients machines to authenticate into the Vnet is through certifications. So, there should be a certificate in place in the client machine for the Vnet to recognize. See the Microsoft [documentation](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-certificates-point-to-site) on how we can generate a certification for authentication.
+
+Once a VPN connection has been properly established, we would be able to log into the application running on a VM in the Vnet directly from our machine. P2S VPN is also a useful solution to use instead of S2S VPN when you have only a few clients that need to connect to a VNet.
+
+## Site to site VPN connection
+There are certain scenarios where we would like to connect an entire on-premises network, i.e., client machines, servers, to the workloads in the Vnet. For such scenarios, we can make use of site-to-site VPN connection. Here are the requirements for establising a site-to-site VPN connection.
+
+- On the on-premise side, you need to have a VPN device that can route traffic via the Internet onto the VPN gateway in Azure. The VPN device can be a hardware device like a Cisco router or a software device ( e.g Windows Server 2016 running Routing and Remote services). The VPN device needs to have a publically routable IP address.
+- The subnets in your on-premise network must not overlap with the subnets in your Azure virtual network.
+- The Site-to-Site VPN connection uses an IPSec tunnel to encrypt the traffic.
+- The VPN gateway resource you create in Azure is used to route encrypted traffic between your on-premise data center and your Azure virtual network.
+- There are different SKU's for the Azure VPN gateway service. Each SKU has a different pricing and attributes associated with it. See the [doc](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpn-gateway-settings). 
+
+**NOTE -** Site-to-site VPNs use IPSEC to provide a secure connection between your corporate VPN gateway and Azure.
+
+Here are the required steps for creating a site-to-site VPN conneciton in Azure: 
+- Create a gateway s
+- Create a local network gateway
+- Create a virtual network gateway
+- Create the VPN connection
+
+## Azure Virtual WAN
+There are certain scenarios where we would like to connect a range of on-premise infrastructure, i.e., office branches, to multiple Vnets in Azure. One way to tackle this is to use a VPN Gateway to establish a connection between an on-premise resource to a Vnet, and establish a Vnet peeting to the second Vnet. This is due to the fact that VPN Gateways can only establish a connection to maximum one Azure Vnet. 
+
+For such scenarios where there are a high number of Azure Vnets and a high number of office locations, we can make use of Azure Virtual WAN. In kind of a mesh network, you can connect your multiple virtual networks onto the WAN. Here's how to simulate a scenario for Azure Virtual WAN:
+- Create two Vnets each hosting a VM that have IIS installed on them. These Vnets have no peerings between them.
+- Deploy an Azure Virtual WAN resource.
+- Deploy a virtual Hub, which is a Vnet used for the Azure Virtual WAN.
+- Next step would be to connect our Vnets to the virtual hub.
+
 # Deploy and manage Azure Compute Resources
 The primary advantage of working with virtual machines is to have more control over installed software and configuration settings. Azure Virtual Machines supports more granular control than other Azure services, such as Azure App Service or Azure Cloud Services.
 
@@ -328,12 +360,13 @@ Previously we discussed Virtual Machines, which give un a fine-grained control o
 We can configure a free, shared, basic, standard, premium, and isolated plan each suitable for a different kind of use case; read [this](https://learn.microsoft.com/en-us/training/modules/configure-app-service-plans/3-determine-plan-pricing) page for more details.
 
 ## Configure Azure App Service
-### Web App Loggin
+### Web App Logging
 There are different logging capabilities in Azure Web App:
-- **Application loggings:** This captures log messages that are generated by the application code. This can be at the filesystem level or blob storage level.
-- **Server logging:** This records raw HTTP mrssages
-- **Detailed error messages:** Copies the .html error pages that would've been sent to the client browser. 
-- **Deployment logging:** Information recorded when changes are published to the web application. 
+- **Application loggings:** This captures log messages that are generated by the application code. This can be at the filesystem level or blob storage level. filesystem level are for temporary purposes and are automatically turned off after 12 hours, but blob is the more permanent solution written into storage account. We can also enable Azure Monitor to stream these logs into Azure Event Hub, Azure Storage or Log Analytics.
+- **Web Server logging:** This records information about incomming HTTP requests, and outgoing responses. This includes data like requested URL, response status, client IP address and response size. 
+- **Detailed error messages:** This logging option allows you to capture detailed error messages generated by the web server. It includes stack traces and other diagnostic information that can help troubleshoot issues with your web app. Detailed error messages are particularly useful during development and testing phases to quickly identify and fix bugs.
+- **Deployment logging:** Information recorded when changes are published to the web application.
+- **Failed request loggin:** Help log information about failed HTTP requests helping to diagnose performance issues in your application.
 - **NOTE -** It is possible to tacking http request to the web app through a live stream logging capability of Azure Web App. 
 
 ###  Deployment slots: 
@@ -345,7 +378,8 @@ Advantages in using deployment slots:
 Security features in Azure App service: 
 - When you enable the security module in Azure App Service, every incoming request/traffic will pass through this module before it's handled by your application
 - So, the authorization and authentication security module in Azure App Service runs in the same environment as the application code, but separately
-Backup for the application
+
+**Backup for the application**
 - The Backup and Restore feature in Azure App Service lets you easily create backups manually or on a schedule. You can configure the backups to be retained for a specific or indefinite amount of time. You can restore your app or site to a snapshot of a previous state by overwriting the existing content or restoring to another app or site.
 You would need a storage account and a container as the destination for the backup files. If the storage account is configured for a firewall, cannot use it as the destination for the backup files. 
 ### Monitoring applications 
@@ -366,33 +400,29 @@ We can use Azure Application Insight, which is a feature of Azure Monitor for mo
 ### Container groups
 Multi-container groups are useful when you want to divide a single functional task into a few container images. The images can be delivered by different teams and have separate resource requirements. Containers in a group can use Azure file shares as volume mounts. Each container in the group mounts one of the file shares locally.
 
-## Point to site VPN connection
-Point to site VPN connections allow you to establish a connection between Azure Virtual Network and client machines. Imagine a scenario where we'd like to establish a connection between a client machine and a web application running on a Virtual Machine in an Azure Virtual Network. Normally, such connection is not possible, since no public IP is assined to this Virtual Machine. In such cases, we can use something known as Point to site VPN connection. Here are the required steps to implement this solution on a high level: 
-- Create an Virtual Private Network Gateway resource and attach it to the virtual network hosting the VM
-- Create an empty Gateway subnet to host the VMs that are responsible for the routing of traffic between client machines and the VMs in the Virtual Network.
-- In order to connect the client machines from the internet onto the VNet through the VPN Gateway, there should be a sort of authentication mechanism in place. One way for clients machines to authenticate into the Vnet is through certifications. So, there should be a certificate in place in the client machine for the Vnet to recognize. See the Microsoft [documentation](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-certificates-point-to-site) on how we can generate a certification for authentication.
-
-Once a VPN connection has been properly established, we would be able to log into the application running on a VM in the Vnet directly from our machine. P2S VPN is also a useful solution to use instead of S2S VPN when you have only a few clients that need to connect to a VNet.
-
-## Site to site VPN connection
-There are certain scenarios where we would like to connect an entire on-premises network, i.e., client machines, servers, to the workloads in the Vnet. For such scenarios, we can make use of site-to-site VPN connection. Here are the requirements for establising a site-to-site VPN connection.
-
-- On the on-premise side, you need to have a VPN device that can route traffic via the Internet onto the VPN gateway in Azure. The VPN device can be a hardware device like a Cisco router or a software device ( e.g Windows Server 2016 running Routing and Remote services). The VPN device needs to have a publically routable IP address.
-- The subnets in your on-premise network must not overlap with the subnets in your Azure virtual network.
-- The Site-to-Site VPN connection uses an IPSec tunnel to encrypt the traffic.
-- The VPN gateway resource you create in Azure is used to route encrypted traffic between your on-premise data center and your Azure virtual network.
-- There are different SKU's for the Azure VPN gateway service. Each SKU has a different pricing and attributes associated with it. See the [doc](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpn-gateway-settings). 
-
-**NOTE -** Site-to-site VPNs use IPSEC to provide a secure connection between your corporate VPN gateway and Azure.
-
-## Azure Virtual WAN
-There are certain scenarios where we would like to connect a range of on-premise infrastructure, i.e., office branches, to multiple Vnets in Azure. One way to tackle this is to use a VPN Gateway to establish a connection between an on-premise resource to a Vnet, and establish a Vnet peeting to the second Vnet. This is due to the fact that VPN Gateways can only establish a connection to maximum one Azure Vnet. 
-
-For such scenarios where there are a high number of Azure Vnets and a high number of office locations, we can make use of Azure Virtual WAN. In kind of a mesh network, you can connect your multiple virtual networks onto the WAN. Here's how to simulate a scenario for Azure Virtual WAN:
-- Create two Vnets each hosting a VM that have IIS installed on them. These Vnets have no peerings between them.
-- Deploy an Azure Virtual WAN resource.
-- Deploy a virtual Hub, which is a Vnet used for the Azure Virtual WAN.
-- Next step would be to connect our Vnets to the virtual hub.
+## Azure Kubernetes cluster
+AKS is a fully managed Kubernetes service provided by Azure. It simplifies the deployment, management, and scaling of Kubernetes clusters in Azure. AKS integrates seamlessly with other Azure services, making it easy to deploy containerized applications on Azure. For more details, see [this](https://learn.microsoft.com/en-us/azure/aks/what-is-aks) doc.
+### Kubernetes Components
+- **Master Node:** The master node is responsible for managing the Kubernetes cluster. It includes several components:
+ - API Server: Exposes the Kubernetes API, which allows users to interact with the cluster.
+ - Controller Manager: Manages various controllers that handle cluster-wide tasks, such as node management, pod replication, and endpoint creation.
+ - Scheduler: Assigns pods to nodes based on resource availability and scheduling constraints.
+ - etcd: A distributed key-value store that stores cluster configuration and state.
+- **Worker Nodes:** Worker nodes are the machines where containers are deployed and executed. They consist of several components:
+ - kubelet: An agent that runs on each node and communicates with the Kubernetes master node. It manages containers, pod lifecycle, and node resources.
+ - kube-proxy: Maintains network rules on nodes. It enables communication between pods and external network clients.
+ - Container Runtime: The software responsible for running containers, such as Docker or containerd.
+- **Pod** 
+ - A pod is the smallest deployable unit in Kubernetes and represents one or more containers that are tightly coupled and share resources, such as networking and storage.
+ - Containers within a pod share the same network namespace, IP address, and port space, allowing them to communicate with each other via localhost.
+ - Pods are ephemeral by nature, meaning they can be created, destroyed, or replicated dynamically based on the workload requirements.
+ - Common examples of pod usage include deploying a single-container application or deploying multiple containers that need to work together, such as a web server and a sidecar container for logging.
+### kubelet within Azure Kubernetes
+The Kubelet is a critical component of a Kubernetes node responsible for managing containers and their associated pods. It ensures that containers are running as expected on the node by interacting with the Kubernetes API server and performing actions based on the desired state specified in the pod. Here are its most important functionalities:
+- **Container Lifecycle Management:** The Kubelet manages the lifecycle of containers on the node, including starting, stopping, and restarting containers as needed.
+- **Pod Lifecycle Management:** It ensures that pods are running and healthy on the node, and it handles pod scheduling, initialization, and cleanup.
+- **Resource Management:** The Kubelet monitors and manages node resources (CPU, memory, etc.) to ensure that containers and pods are allocated resources as specified in their resource requests and limits.
+- **Networking and Storage:** It sets up networking and storage configurations for containers and pods, including configuring network interfaces and mounting storage volumes.
 
 # Implement and manage storage in Azure
 ## Implement Azure Storage Account
@@ -412,7 +442,14 @@ Azure creates multiple copies of your data to protect it again planned or unplan
 - **Locally redundant storage (LRS)** copies your data synchronously three times within a single physical location in the primary region. LRS is the least expensive replication option, but isn't recommended for applications requiring high availability or durability. An example scenario where the LRS storage type should be chosen is where we're processing sensor data in real-time and we're only interested in the most recent version and data loss is not important.
 - **Zone-redundant storage (ZRS)** copies your data in 3 availability zones within the primary region. For high availability applications, Microsoft recommends using ZRS, but also replicating to a secondary region.
 - **Geo-redundant storage (GRS)** copies your data 3 times in a single physical location in the primary region using LRS, but also to a physical location in a seconday region.
-- **Geo-zone-redundant storage (GZRS)** copies your data into 3 availability zones in the primary region using ZRS, but also into a single physical location in a secondary region using LRS. 
+- **Geo-zone-redundant storage (GZRS)** copies your data into 3 availability zones in the primary region using ZRS, but also into a single physical location in a secondary region using LRS.
+
+#### Read access to data in the secondary region
+In your storage account for GRS or GZRS, the data in the secondary region is not accessible, unless a failover occurs. For applications with requirements for high availability, you can configure your storage account for read access in the seconday region. When this is enabled on your storage account, you can always read from the seconday regions, including cases where the primary region is unavailable. Read-access geo-redundant storage (RA-GRS) or read-access geo-zone-redundant storage (RA-GZRS) configurations permit read access to the secondary region.
+
+When your storage account is set for RA-GRS or RA-GZRS, your application can read from the secondary endpoint as well as the primary endpoint. The advantage for this storage mode is that you can test your application in advance to make sure that it can indeed read from the seconday region.
+
+[See the documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy#read-access-to-data-in-the-secondary-region) for more details. 
 ### Secure storage endpoints
 You can use Azure service endpoints to restrict access to a storage account to only resources within a Vnet or Subset. An Azure Service Endpoint will extend a Vnet's IP address range by incorporating that storage account into its space. This way, access to the storage account will be possible through IP Address exception and firewall openings.
 
@@ -481,6 +518,9 @@ You can define Azure Policy to define compliance conditions, and the actions/eff
  - ```Logical Operator```
  - ```Effect```
 
+### Scopes for Azure Policy
+Once business rules have been formed, you can define policies for any resource that Azure support, i.e., management groups, subscriptions, resource groups or individual resource. Note that Azure policy exclusions cannot be set at the management group level.
+
 # Monitor and back up Azure resources
 ## Configure file and folder backups
 Azure backup replaces your off-site or on-premise backup solution with cloud-based solution that's secure, cost-effective and reliable.
@@ -495,6 +535,18 @@ Azure backup offers multiple components or agents that you download and deploy o
 - It provides LRS (copies data 3 times in a single physical location within the primary regions) and GRS (copies the data to a seconday region) storage options for your backup data.
 
 **NOTE -** If you're using Azure Backup for Azure Files file shares, you don't need to configure the storage replication type. Azure Files backup is snapshot-based, and no data is transferred to the vault. Snapshots are stored in the same Azure storage account as your backed-up file share.
+
+### Azure VM backup
+In order for the backups to be implemented, an extention needs to be installed on the agent running in the Azure VM. The first step in implementing a backup for Azure VM is to reploy a Azure Recovery Services Vault. It's management entity that stores recovery points over time, and it provides an interface for peforming backup-related operations.
+
+When the recovery services vault is created, you can set up a backup policy in which you can determine the backup schedule. The default policy creates a backup once a day and retains them for 30 days; we can create a new policy to define those settings for our use case. Here are a few notes on Backup policy:
+- The services recovery vault should be in the same region as the Virtual Machine
+- Once we enable the backup, it'll deploy the new policy to the recovery services vault and installs the backup extension on the VM agent installed in Azure VM.
+- The following settings needs to be specified when creating a backup policy:
+ - policy name; Name for the new policy 
+ - schedule: How often the backups should take place.
+ - instant restore: Specify how long you'd like to retain snapshots locally
+ - retention range: Specify how long you'd like to keep your daily, weekly, monthly or yearly backups.
 
 ### Microsoft Azure Recover Services Agent
 Azure uses a MARS agent for backing up files, folders, system data from your on-premise machines and azure VMs. This agent is to be installed on your windows machine.
@@ -617,8 +669,119 @@ The purpose of Azure firewall is to ensure outbound and inbound communications t
 **Backup reports for recovery services vault**
 - You can choose to send diagnostics data for an Azure Recovery Services vault to either a storage account or to a Log Analytics workspace. From this you can then view Backup reports. What's important is that the Storage Account needs to be in the same location as the Services Recovery Vault. However, when it comes to the log analytics workspace, it can be in any location.
 
-**Backup policy**
-- When you're configuring a backup for VMs, you can set up a backup policy in which you can determine the backup schedule.
-
 **What does a user access administrator role entail?**
 - The User Access Administrator role enables the user to grant other users access to Azure resources.
+
+**How to deploy a YAML file into an Azure Kubernetes Cluster**
+- Use the kubectl client tool to deploy the YAML file to the cluster. Follow [this documentation](https://learn.microsoft.com/en-us/azure/aks/tutorial-kubernetes-deploy-application?tabs=azure-cli). 
+
+**Basic Azure Load Balancer**
+- If we have a Basic Azure Load Balancer, the backend virtual machines need to be part of the same availability set or scale set.
+
+**Azure Proximity Groups**
+- Azure Proximity Placement Group is a logical grouping of Azure compute resource to make sure they're deployed close to one another; this is useful for cases where low latency is a requirement. Here's how you can assign VMs as part of a proximity group: 
+- Create a proximity placement group in Azure using [this Terraform resource](https://registry.terraform.io/providers/hashicorp/Azurerm/latest/docs/resources/proximity_placement_group).
+- Once the resouce is in place, set the ```proximity_placement_group_id``` parameter within the VM resource to the id of the proximity group.
+**NOTE:** Note that the proximity placement group should obviously be in the same region as the Virtual Machines.
+
+**web server logging in Azure Web App**
+- In order to capture errors in your application hosted in Azure Web App, we can use web server logging.
+
+**Network interface region**
+- Note that the NIC and the Vnet should be in the same region
+
+**Adding or removing an address space range to an Azure Vnet**
+- Imagine a scenario where we have Vnet with an address space of 10.0.0.0/16; we'd like to have VM with an IP address of 192.168.0.4. How can we let it happen? 
+- Here you need to add an IP Address range of 192.168.0.0/24 to the virtual network so that VM’s deployed can get an IP address from that address range. Adding this range allows the VM to obtain the IP 192.168.0.4 from the Vnet.
+
+**Administrative units in Microsoft Entra ID**
+- See [this documentation](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/administrative-units).
+- An administrative unit is a container for Entra ID resources. administrative units have restricted role to any portion of the organization that you define. It can be useful to restrict administrative scope by using administrative units in organizations that are made up of independent divisions of any kind.
+- It's important to plan an organization's administrative units; IT department is scattered globally might create administrative units that define relevant geographical boundaries.
+
+**Resource locking**
+- You can define resource locking for your subscription, resource groups and resource scopes to protect your resources against deletions and modifications. Note that you cannot define locking at the management group level.
+
+**Azure Resource tags**
+Note that you cannot define tags at the management group level, but you can at subscription level.
+Here's the benefit of using tags:
+- **Resource management:** The IT teams needs to quickly spot resources in certain environments, ownership groups and other properties. Tags are useful for access and role managements.
+- **cost management and optimization:** Making business groups aware of the cost of cloud resource is important in undestanding consumptions of certain workloads.
+- **Governance and compliance:** Maintaining consistency across resources helps with identifying divergence from policies. 
+- **Automation:** Having an organizational scheme is beneficial for automations in creating resources, monitoring operations and creating DevOps processes.
+- See the rest of the advantages [here in the documentation](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming-and-tagging-decision-guide?toc=%2Fazure%2Fazure-resource-manager%2Fmanagement%2Ftoc.json)
+
+**What is conditional access policy?**
+- Conditional Access policies at their simplest are if-then statements; if a user wants to access a resource, then they must complete an action. For example, if a user wants to access an application, or Microsoft 365, they must perform a multi-factor authentication.
+- Conditional access polict takes signal from various sources before making a decition, the most restricting devision being the access blockage, and the less restrictive decision to grant user based on conditions like multi-factor authentication, or requiring the device to be compliance. For more details on the types of signal the conditional access policy takes into account, and the types of decisions and requirements for access, see [this documentation](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview)
+- Administrators with [Conditional Access Administrator](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference#conditional-access-administrator) role can manange access policies. 
+
+**ARM Templates**
+- Use the ```copyIndex()``` function to iterate to specify the index vaule of the copy iteration. Useful for cases where we'd like to deploy multiple copies of the same resource.
+- Use the ```copy``` property to create multiple copies of the same resource.
+
+**Virtual WAN**
+- See [this tutorial](https://learn.microsoft.com/en-us/azure/virtual-wan/virtual-wan-site-to-site-portal) on how to configure a virtual WAN.
+
+**Private DNS Zone**
+- You can create a link between a private DNS zone and a Vnet that are not in the same regions. 
+
+**Life cycle management rules**
+- Life cycle management is available for Standard V2 and Premium BlockBlobStorage storage accounts. However, this is not available for file storage.
+
+**Azure Kubernetes**
+- If a Kubernetes cluster is using kubenet as the underlying network layer, then you can use Calico Network Policies to restrict traffic between pods.
+- Use the ```kubectl apply``` command to deploy a container (running instance of an image) to a Kubernetes cluster.
+- See [this documentation](https://learn.microsoft.com/en-us/azure/aks/concepts-network) for networking on Azure Kubernetes cluster.
+
+**What gets swapped in deployment swaps**
+- See [this documentation](https://learn.microsoft.com/en-us/azure/app-service/deploy-staging-slots?tabs=portal#what-happens-during-a-swap) for more details.
+
+**Azure Web App and service Plan regions**
+- The App Service Plan and the Azure Web App need to be in the same region.
+- If there is a policy to not allow virtual networks in a resource group, you cannot create an address space in an already existing Vnet.
+
+**What is Azure Data Box**
+- Azure Data Box is a cloud solution facilitating the swift, cost-effective, and reliable transfer of terabytes of data to and from Azure. This process is expedited through the use of a specialized Data Box storage device, each boasting a maximum usable storage capacity of 80 TB.
+- Data Box is particularly suited for scenarios with limited network connectivity or when dealing with data sizes larger than 40 TBs, offering one-time migrations, periodic uploads, or initial bulk transfers followed by incremental transfers.
+- The service ensures security through features such as rugged casing, AES 256-bit encryption, and end-to-end tracking via the Azure portal. Additionally, Data Box offers benefits such as high-speed data transfer using 1-Gbps or 10-Gbps network interfaces and built-in security measures, making it an efficient and secure solution for large-scale data transfers to Azure.
+
+**Allow forwarded traffic in Vnet peering**
+- The "Allow forwarded traffic" option becomes particularly valuable in a hub-and-spoke architecture, where a central VNet (hub) serves as a communication hub for multiple other VNets (spokes). In such architectures, VNets typically connect to the central hub VNet rather than directly to each other.
+- Enabling forwarded traffic allows VNets connected to the central hub to communicate with each other through that hub, facilitating inter-VNet communication while maintaining a centralized point for managing network traffic, security, and policies. This configuration is common in scenarios where you want to enforce security measures, apply network policies uniformly, or centralize network monitoring and auditing.
+
+**Azure Site Recovery**
+- Azure Site Recovery is a disaster recovery and migration service that orchestrates and manages replication, failover, and failback of on-premises servers, Azure VMs, and Azure VMs between Azure regions. It supports a variety of workload scenarios, including VMware, Hyper-V, physical servers, and Azure VMs. Here's how Azure Site Recovery facilitates the migration process:
+
+- **Replication:** ASR replicates the on-premises servers and VMs to Azure storage. During this process, it ensures minimal disruption to the production workload.
+- **Migration Planning:** ASR provides assessment tools to analyze on-premises infrastructure and dependencies, helping you understand the feasibility and requirements of migration to Azure.
+- **Migration Execution:** Once replication is set up, ASR facilitates the migration of servers to Azure by orchestrating the failover process. This can be done in a controlled manner, allowing you to test the migration before committing to the final cutover.
+- **Continuous Replication:** ASR supports ongoing replication to keep the Azure environment up-to-date with changes in the on-premises environment until you're ready to cut over permanently.
+
+**Tagging scenario**
+- The tagging solution depends on the scenario. If all departments are consuming from same resource groups, then tagging should not be applied at the resource group level, but at the resource level. 
+
+**Deployment section of a resource group**
+- This section is useful for observing the date and time of resource deployments within a resource group.
+
+**For importing files into Azure using the import/export service, you need the following files:**
+- The *driveset CSV file* contains information about the physical disk drives being shipped to Azure, while the *dataset CSV file* contains details about the data to be imported onto those disk drives.
+
+**Vnet and NSG regions**
+- The NSG that's going to be attached to a subnet should be in the same region as the Vnet.
+
+**Logging into a VM**
+- In order to be able to log into a VM, it's not enough to have a contributor role over the VM scope, but you also need to have the ```Virtual Machine User Login``` role to be able to do so.
+
+**Data Collection Rules**
+- Currently you can only set Azure Virtual Machines as the data source for data collection rules.*
+- Currently the Log Analytics workspace is supported as the destination for the data collection rule.
+
+**Swapping between slots**
+- See [this documentation](https://learn.microsoft.com/en-us/training/modules/configure-azure-app-services/6-add-deployment-slots) to see what gets swapped and what properties are slot specific properties.
+
+**Content Delivery Network (CDN)**
+- A CDN helps distribute content geographically closer to end-users by caching static content (such as images, CSS, JavaScript files) on edge servers located in various regions around the world. This reduces latency and improves the overall speed and responsiveness of the web application for users accessing it from distant locations.
+- A Content Delivery Network (CDN) endpoint is a specific network address or URL that serves as the entry point for accessing cached content distributed across the CDN's network of edge servers.
+- For more details on how to create a CDN endpoint to improve performance and reduce latency of static contents, see [this documentation](https://learn.microsoft.com/en-us/azure/cdn/cdn-add-to-web-app).
+
