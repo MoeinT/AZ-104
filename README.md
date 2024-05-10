@@ -425,6 +425,19 @@ The Kubelet is a critical component of a Kubernetes node responsible for managin
 - **Networking and Storage:** It sets up networking and storage configurations for containers and pods, including configuring network interfaces and mounting storage volumes.
 
 # Implement and manage storage in Azure
+## Storage account types
+Below we can see an overview of Azure Storage account types. See [this documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview) for an overview of storage types.
+- **Standard general-purpose V2:** Has support for blob storage, table storage, queue storage and table storage. Has support for all redundancy options.
+- **Premium block blobs:** Has only support blob storage and is suitable for scenarios with high transactions rates and low-latency requirements for blobs.
+- **Premium file shares:** Premium account for Azure Files only and supports LRS and ZRS redundancies. Suitable for enterprise and high-performing scale applications with support for SMB and NFS file shares.
+- **Premium page blobk:** Premium account for page blobs and is used for storing hard disks attached to VMs. 
+
+**Things to note:** 
+- 2 ZRS, GZRS, and RA-GZRS are available only for standard general-purpose v2, premium block blobs, premium file shares, and premium page blobs accounts in certain regions.
+- 3 Premium performance storage accounts use solid-state drives (SSDs) for low latency and high throughput.
+- The premium account for block blobs and file shares does not have support for access tiers (cool, hot and archive).
+- The premium accounts are mor suitable for high-transaction and low-latency applications like streaming and machine learning. Here the storage costs are higher but transactions costs are cheaper.
+
 ## Implement Azure Storage Account
 Azure Storage offers a scalable object store for data objects. It provides a file system service in the cloud, a messaging store, and a NoSql object store. Developers can use Azure Storage for working data. Working data includes websites, mobile applications and desktop applications. Azure Storage can be used to store 3 categories of data: 
 - VM data: VM data include Disks and Files; disks are storage blocks for VMs and files are fully-managed file shares in the cloud.
@@ -450,10 +463,11 @@ In your storage account for GRS or GZRS, the data in the secondary region is not
 When your storage account is set for RA-GRS or RA-GZRS, your application can read from the secondary endpoint as well as the primary endpoint. The advantage for this storage mode is that you can test your application in advance to make sure that it can indeed read from the seconday region.
 
 [See the documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy#read-access-to-data-in-the-secondary-region) for more details. 
+
 ### Secure storage endpoints
 You can use Azure service endpoints to restrict access to a storage account to only resources within a Vnet or Subset. An Azure Service Endpoint will extend a Vnet's IP address range by incorporating that storage account into its space. This way, access to the storage account will be possible through IP Address exception and firewall openings.
 
-Another approach to securing the storage account would be to create a private link to resources within a Vnet. So, the advantage to this approach is that communications between resources in a Vnet/Subnet to this storage account is established through the Microsoft backbone network infrastructure and will be go through the public internet. See [this] (https://www.youtube.com/watch?v=vM7yDwHSc_o) video for more details on how to create a private link to an Azure Storage Account.
+Another approach to securing the storage account would be to create a private link to resources within a Vnet. So, the advantage to this approach is that communications between resources in a Vnet/Subnet to this storage account is established through the Microsoft backbone network infrastructure and won't go through the public internet. See [this] (https://www.youtube.com/watch?v=vM7yDwHSc_o) video for more details on how to create a private link to an Azure Storage Account.
 
 ## Configure Azure Blob Storage
 It's a service for storing large amounts of unstructured data; data that does not adhere to any model or definition.
@@ -462,8 +476,72 @@ There are 3 access tiers for blob data, Hot, Cool & Archive. Each one is optimiz
 - **Hot -** The Hot tier is designed for the frequent read and write of objects in the storage account. By default, SAs are created in the HOT tier; it has the lowest access costs and highest storage cost.
 - **Cool -** This tier is designed for storing large amounts of objects that are infrequently accessed. Data must remain untouched for at least 30 days for this tier. A example use case would be short-term backup files and disaster recovery datasets. It's a cost-effective option for data storage and more expensive than the hot tier for accessing data. 
 - **Archive -** It's an offline tier for storing data and is optimized for use cases that can tolerate hours of latency. Data must remain in the storage account for at least 180 days otherwise will be subject to early deletion charges. It's the most cost-effective option for storing data and the most expensive for accessing it. Data for the Archive tier includes secondary backups, original raw data, and legally required compliance information.
+
+**NOTE:** The hot and cool tiers can be set at the storage account level, but the archive mode can only be set at the blob level.
+
 ### Lifecycle management rules
-Azure blob storage supports lifecycle management rules; we can use it to transition to the right access tier. 
+Azure blob storage supports lifecycle management rules; we can use it to transition to the right access tier automatically based on certain rules. We can do so using Terraform. See [this documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_management_policy).
+
+### Object Replication for block blobs
+Object replication for block blobs is a feature that allows you to copy your blobs asynchronously between a source storage account and the destination storage account. Here are a few scenarios where this could be useful: 
+- Minimizing read requests by allowing clients to read from the region that's closer to them.
+- After your data has been replicated, you can reduce costs by setting it the archive tier automatically using life cycle management policies.
+- You can optimize your data distribution by analyzing it in single region and replicating the result to additional region.
+
+**Things to know about Object Replication**
+- You can define rules to specify which objects should be replicated from source to the storage account.
+- This feature is only available for standard general-purpose V2 and premium block blob storage accounts.
+- Blob versioning should be enabled on both the source and destination storage accounts.
+- Change feed should also be enabled on the source storage account.
+
+### Identity-based authentication to Azure Files using SMB
+Here are the following methods to authenticate into Azure Files. See [this documentation](https://learn.microsoft.com/en-us/azure/storage/files/storage-files-active-directory-overview) for more details:
+- On-premise active directory domain services authentication
+- Entral ID domain services authentication
+- Entra ID for Kerberes for hybrid identities
+- AD Kerberes authentication for Linux Clients
+
+### Copy Data in Azure Storage Account
+Here are the different services for copying data in Azure SA:
+
+**Azure import/export service**
+- Used for copying a large amount of data to Azure Blob Storage or Azure Files
+- It also allows copying data from Azure Blob Storage to your on-premises environments.
+- This is established by the use of disk drives. You can use your own or that of Microsoft
+- Once an import (process of copying data into Azure Blob Storage) process, you can opt for a Disk Drive by Microsft. You can then copy the data into that disk drive by creating a job via the Azure portal.
+- The copy process is established by the use of the WAImportExportTool. It helps with the following: 
+ - It helps to prepares the disk drive and copy data to it during the import process
+ - It encrypts the data on the drive
+ - It generates journal files that are used during import creation 
+ - Helps to identify the number of disks required for the import
+
+**Azure Data Box**
+- Helps to copy terabytes of data in and out of Azure without using any internet connection
+- This box can be ordered via the Azure Portal
+
+**AzCopy command in Azure Storage Account**
+It's a command-line utility to copy blobs or files to or from Azure Storage Account. Use the ```AzCopy make``` command to created a container and the ```AzCopy copy``` command to copy to or download from a Storage Account. In order to authenticate into the Storage Account and run these commands, we'll need a Shared Access Signature (SAS) Token.
+
+### Blob snapshots and versioning
+- Snapshot is a read-only version of a blob taken at a point in time. For each blob you can choose to take a snapshot and promote it if necessary to overwrite the current version.
+- You can also enable versioning on your blobs and keep track of different versions of the same blob. You can also choose to make a specific version the current version. In some cases, versioning is more practical than taking a snapshot.
+
+### Security in Azure Storage Accounts 
+Normally, your storage accounts are a public service accessible through access keys, SAS tokens or Entra ID authentications. However, we can choose to enable something known as a service endpoint on the storage account and make it accessible only through a specific subnet within a Virtual Network. This way, the SA is only accessible through firewall openings and IP exceptions. Follow the below steps to do so: 
+- Under the networking tab in your vnet, enable the ```Microsoft.Storage``` endpoint and choose the subnet within the Vnet.
+- On your storage account, under the networking tab select "accessible through specific Vnets" and choose an existing Vnet.
+
+The second approach is to use a Private Endpoint to make the storage account accessible to resources within a Vnet. Here we dedicate the Azure service (in this case a storage account) a private IP address from the address range in the Vnet and bring the service into the Vnet.
+
+### Azure File Sync
+A service that allows us to store files in a highly durable storage service and be able to access them directly on your on-premise servers. Here are the required steps to implement Azure file sync:
+- Create an azure file sync resource
+- Within the file sync resource, create a sync group, within which we specify the name of the storage account and the file share within it. This connects the azure file share to the azure file sync and create a **cloud endpoint** 
+- Install an Azure File Sync agent on your servers; this allows the servers to connect to the Azure File Sync resource. Once the servers have been registered, they will be shown under the *registered servers* section of the Azure File sync resource. 
+- Under the sync groups tab, created a **server endpoint** using the registered servers in the previous step. Here we need to specify the path within the on-premise server where we'd like the sync to take place.
+
+**NOTE:** We can have as many on-premise servers as required for a single cloud endpoint within a sync group. This way all servers connected to the Azure File Sync service will be synced together and share files. The goal is to have a distributed file system here. We are not supposed to upload any file in the file share in the cloud as it will not be projected into the local servers.
+
 # Manage identities and governance in Azure
 ## Configure Microsoft Entra ID
 Microsoft Entra ID is a cloud-based identity and access management service. See [this](https://learn.microsoft.com/en-us/training/modules/configure-azure-active-directory/2-describe-benefits-features) documentation for details on its capabilities.
@@ -492,20 +570,38 @@ We also need to explore the difference between RBAC and Entra Id roles.
 
 **NOTE -** In addition to RBAC, Microsoft Entra Id provides built-in administrator roles to manage Microsoft Entra resources like users, groups and domains.
 
-### Difference between RBAC and Microsoft Entra Id
+### Difference between RBAC and Microsoft Entra ID
 **Access management -** RBAC controls access to Azure resource, so it provides a more granular access management for Azure resources, but Microsoft Entra provides access to Microsoft Entra resources.
-**Scope assignment -** RBAC can assign roles at difference scope, but Microsoft Entra Id provides access at the tenant level.
-**Roles -** RBAC has built-in roles and has the possiblity to create custom roles as well, but with Entra Id offers administrator roles to manage Entra Id resoureces. Here's Microsoft Entra Id administrator roles: *Global admin*, *Application admin*, and *Application developer*.
+**Scope assignment -** RBAC can assign roles at difference scope, but Microsoft Entra ID provides access at the tenant level.
+**Roles -** RBAC has built-in roles and has the possiblity to create custom roles as well, but Entra ID offers administrator roles to manage Entra ID resoureces with the possiblity of creating custom roles, for which we'll need a premium P1 or P2 tier for Entra ID. Here's Microsoft Entra Id administrator roles: *Global admin*, *Application admin*, and *Application developer*.
 
 ## Create Azure users and groups in Microsoft Entra ID
-Imagine a scenario where you're a Microsoft Entra Id global administrator. A new team of developers are to be onboarded to develop and host an application in Azure. There are a number of external users who are to be consulted for the application design. Here's the goal:
-- The goal is to create external users in Microsoft Entra Id for external users.
+Imagine a scenario where you're a Microsoft Entra ID global administrator. A new team of developers are to be onboarded to develop and host an application in Azure. There are a number of external users who are to be consulted for the application design. Here's the goal:
+- The goal is to create external users in Microsoft Entra ID for external users.
 - We should also create groups to manage access to the application resource
 
 There are 3 ways we can assign roles to users:
 - Direct assignment
 - Group assignment
 - Rule-based assignment
+
+### Dynamic Groups
+Using this feature, we can define rules to automatically add users to a group. For this feature, we need to have at leat the premium P1 tier for the Entra ID. When creating a dynamic group, the membership should be of type "dynamic user". Within the group definition, we will have to define dynamic queries to define rules to automatically assign users to that group, i.e., based on the user's properties.
+
+## Custom domains in Entra ID
+It's possible to register your custom domains for your defined users in Entra ID. This way the principal names for every new created user will use your custom domain name in Microsoft Entra ID.
+
+## Joining a device to Microsoft Entra ID
+In the same way we manage the users and groups and roles in Entra ID, we can also register and manage our devices in Microsoft Entra ID. Same way we created dynamic groups for the users, we can create dynamic groups for devices to allocate devices to groups based on specific rules.
+
+## Self-service password reset
+- A feature that's available with an Entra ID of at least premium P1. Within Entra ID unders the "password reset" section, you can enable this option for all or a selected number of users. 
+- In order for the password reset option to be enabled for a user, a premium-based licence has to be given to the user
+- In order for a password reset to take place, a kind of authentication needs to be in place. We can choose the minimum number of authentications required for a password reset
+- Here are the type of authentications supported for password reset: *mobile app notification*, *mobile app code*, *mobile number*, *office number*, *security questions*, and *email*.
+
+## Bulk operations in Entra ID
+Instead of creating users one by one, we can take advantage of the bulk operation feature in Entra ID to create, invite, or delete users in bulk. This way we'll need to download a CSV file and add users into it and upload it again to create users in bulk.
 
 ## Configure Azure Policy
 You can define Azure Policy to define compliance conditions, and the actions/effects to take when those compliances are not met. Below are the fields within policy definitions. See [the documentation](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure-basics#policy-type) for more details. 
@@ -620,7 +716,10 @@ Network watcher enables you to monitor and repair the network health of IaaS ser
 The purpose of Azure firewall is to ensure outbound and inbound communications to the internet are safe. For this, we need to make sure it has a public ip address to have an interface to the internet.
 
 # Questions
-**What's a stored access policy?** Provides an additional level of security over service-level shared access signature (SAS) tokens. You'd be able to change start time, expiry time or permission for a signature; useful for scenarios where the security requirements could change without having to recreate the token. See the [doc](https://learn.microsoft.com/en-us/rest/api/storageservices/define-stored-access-policy).
+**What's a stored access policy?** 
+- We have this possibility to create a stored access policy and attach it to the SAS token we've created. Within the stored access policy we can choose the permission level, start time and expiry time for the signature.
+- Provides an additional level of security over service-level shared access signature (SAS) tokens. useful for scenarios where the security requirements could change without having to recreate the token. See the [doc](https://learn.microsoft.com/en-us/rest/api/storageservices/define-stored-access-policy).
+- Another scenario where this would be useful is for cases when the SAS token has been give to the wrong person; we can change the level of permissions or the expiry time and it will be effective immediately. 
 
 **What is object replication in Azure Storage:** Object replication asynchronously copies block blobs between a source storage account and a target one. For object replication, **change feed** and **blob versioning** must be enabled. Object replication only copies objects after replication, it does not copy pre-existing objects. 
 
@@ -785,3 +884,5 @@ Here's the benefit of using tags:
 - A Content Delivery Network (CDN) endpoint is a specific network address or URL that serves as the entry point for accessing cached content distributed across the CDN's network of edge servers.
 - For more details on how to create a CDN endpoint to improve performance and reduce latency of static contents, see [this documentation](https://learn.microsoft.com/en-us/azure/cdn/cdn-add-to-web-app).
 
+**NotePort in AKS**
+- In Azure Kubernetes Service (AKS), when you expose a service using the NodePort type, incoming traffic is mapped directly to the pods through a designated port on the nodes.
