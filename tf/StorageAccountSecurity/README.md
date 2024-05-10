@@ -34,3 +34,8 @@ Utilizing Terraform for deploying infrastructure into Azure, particularly employ
 - **Community and Ecosystem:** Terraform benefits from a vibrant community and ecosystem, offering a vast library of community-maintained modules, plugins, and integrations. Leveraging these resources accelerates development and enhances productivity.
 
 In summary, leveraging Terraform for deploying infrastructure into Azure, especially utilizing modular approaches, provides numerous benefits, including enhanced automation, scalability, maintainability, and consistency. By embracing Infrastructure as Code principles, organizations can streamline their Azure deployments, improve operational efficiency, and achieve greater agility in managing cloud infrastructure.
+
+# References 
+[Creating a private endpoint for Azure storage account using Terraform](https://dev.to/agsouthernt/creating-a-private-endpoint-for-azure-storage-account-using-terraform-1f3g)
+
+[Quickstart: Create a private endpoint by using Terraform](https://learn.microsoft.com/en-us/azure/private-link/create-private-endpoint-terraform?tabs=azure-cli)
