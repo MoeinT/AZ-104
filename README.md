@@ -546,13 +546,6 @@ A service that allows us to store files in a highly durable storage service and 
 ## Configure Microsoft Entra ID
 Microsoft Entra ID is a cloud-based identity and access management service. See [this](https://learn.microsoft.com/en-us/training/modules/configure-azure-active-directory/2-describe-benefits-features) documentation for details on its capabilities.
 
-### Resource Locking
-As an administrator you can lock your resources to protect them against modifications or deletions. Resource locking will override any user permission.
-- Use the **CanNotDelete** lock to authorize users to read and modify resources, but not delete them. 
-- Use the **ReadOnly** lock to authorize users to only read the resources, but not modify nor delete them. 
-
-Unlike RBAC, locks are implemented across a scope for all users and groups. 
-
 ## Configure role-based access control
 We can use role-based access control to ensure resources are protected, but also certain users can access them. So, we can create roles and assign them to different users allowing them to have limited access to certain resources. So with this, we can decide and manage who can access to Azure resouces. We can also control what operations those users can do on Azure resources. Here are certain important concepts to learn:
 - Security Principal: An object that can request access to a resource: User, group, service principal, and managed identity
@@ -603,7 +596,58 @@ In the same way we manage the users and groups and roles in Entra ID, we can als
 ## Bulk operations in Entra ID
 Instead of creating users one by one, we can take advantage of the bulk operation feature in Entra ID to create, invite, or delete users in bulk. This way we'll need to download a CSV file and add users into it and upload it again to create users in bulk.
 
-## Configure Azure Policy
+## Multi-factor Authenticatioin in Entra ID
+For users with strong administrative priviledges, i.e., gloabl Entral ID administrators, we need to make sure their account is 100 % and we would want to enable a feature called multi-factor authentication and add an additional authentication step for the Entra ID account.
+
+Under the MFA page for users, we can see for which user this feature is *disabled*, *enabled*, or *enforced*(the user has set the additional authentication and security mechanism).
+
+## Conditional Access Policy in Entra ID
+Conditional Access Policy is a feature of Microsoft Entra ID that allows organizations to control access to Microsoft Resources based on certain signals such as, user or group memebership, IP address or location, device type, the device platform (windows, macOs, Android, Linux etc.) or the user risk level. Conditional access policy is an if-else statements to control access based on these signals. This feature is only available within the premium version of Microsoft Entra ID.
+
+We can implement conditional access policy in Entra ID under the security tab, and then conditional access policy. We can choose to enable this feature for all, or a selected number of users or groups. Within this feature, we can also choose the application for which conditional access policy is enabled, i.e., Microsoft Azure Management, which is associated to the Azure Portal.
+
+If the conditional access policy detects any risk based on the above signals, we can choose to block, or provide a conditional access that requires an additional step, like the device being compliant, or multi-factor authentications. See a list of all possible steps [here in the documentation](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview).
+
+## Administrative Units in Entra ID
+In cases where there are multiple departments in an organization, it would make sense to isolate the management of users, groups and other Entra ID resources for each department. So, each department would be assicuated to an administrative unit with restricted administrative role over that portion of the organization.
+
+## Resource Tags
+Here's the benefit of using tags:
+- **Resource management:** The IT teams needs to quickly spot resources in certain environments, ownership groups and other properties. Tags are useful for access and role managements.
+- **cost management and optimization:** Making business groups aware of the cost of cloud resource is important in undestanding consumptions of certain workloads.
+- **Governance and compliance:** Maintaining consistency across resources helps with identifying divergence from policies.
+- **Automation:** Having an organizational scheme is beneficial for automations in creating resources, monitoring operations and creating DevOps processes.
+
+See [this documentation](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming-and-tagging-decision-guide?toc=%2Fazure%2Fazure-resource-manager%2Fmanagement%2Ftoc.json) for more details on tags and their benefits.
+
+Each resource group or subscription can have up to 5O tags in the form of key-value pairs. An important note is that the resources within a scope are not going to inherit tags from that scope. Also, note that you cannot define tags at the management group level, but you can at subscription level.
+
+## Moving resources across resource groups or subscriptions
+In certain scenarios we might want to move resources across resource groups or subscriptions. Pay attention to the following details: 
+- When moving a resource to a target resource group, the original location of the resource is preserved, regardless of the location of the target resource group
+- If you move a resource that has an Azure role assigned directly to the resource (or a child resource), the role assignment isn't moved and becomes orphaned. After the move, you must re-create the role assignment.
+- The source and destination subscriptions must exist within the same Microsoft Entra tenant.
+- If we're moving a resource across subscriptions, all its dependent resources will also have to move to the target subscription, i.e., Azure App Service Plan and an Azure App Service. Also, all the dependent resources should be part of the same resource group before the migratioin.
+
+See [this documentation](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/move-resource-group-and-subscription) for more details on limitations and things to consider before moving resources across resource groups or subscriptions.
+
+## Resource Locking
+As an administrator you can lock your resources to protect them against modifications or deletions. Resource locking will override any user permission.
+- Use the **CanNotDelete** lock to authorize users to read and modify resources, but not delete them. 
+- Use the **ReadOnly** lock to authorize users to only read the resources, but not modify nor delete them. 
+
+Note that you can define resource locking for your subscription, resource groups and resource scopes to protect your resources against deletions and modifications. Resource locking are inherited by lower-level resources within a scope. Note that you cannot define locking at the management group level.
+
+Unlike RBAC, locks are implemented across a scope for all users and groups.
+
+## Resource locking and moving resources
+A scenario that could take place is a case where we're applying a ReadOnly lock at the resource group level and try to move a underlying resource, i.e., a VM within that resource, to another resource group. 
+
+The above operation cannot take place, since moving that underlying resource will modify the properties of the resource group, for which a ReadOnly lock has been enforced. 
+
+The same logic applies for the target resource; if there's a ReadOnly lock on it, we cannot move any resource to it.
+
+## Azure Policy Service
 You can define Azure Policy to define compliance conditions, and the actions/effects to take when those compliances are not met. Below are the fields within policy definitions. See [the documentation](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure-basics#policy-type) for more details. 
 - ```DisplayName```: Used to identify the policy
 - ```Description```: Provides context into the policy
@@ -615,9 +659,98 @@ You can define Azure Policy to define compliance conditions, and the actions/eff
  - ```Effect```
 
 ### Scopes for Azure Policy
-Once business rules have been formed, you can define policies for any resource that Azure support, i.e., management groups, subscriptions, resource groups or individual resource. Note that Azure policy exclusions cannot be set at the management group level.
+Once business rules have been formed, you can define policies for any resource that Azure supports, i.e., management groups, subscriptions, resource groups or individual resource. Note that Azure policy exclusions cannot be set at the management group level.
+
+### Azure Policy remediation task
+While creating the policy, we can go ahead and enable remediation for the policy. This option will apply the new policy for existing resources that are not compliant. For this, it'll use a managed identity with a contributor role to access and modify the existing resources, i.e., add a tag to resources if the policy is about tags.
+
+### Not Allowed Resource Type in Azure Policy
+There's one policy called Not Allowed Resource Type, within which you can specify the resources that can not allowed to be deployed over a scope, i.e., resource group. Note that Azure Policy will not affect existing non-compliance resources by default, but will prevent creating of new non-compliant resources.
 
 # Monitor and back up Azure resources
+## Alerts in Azure Monitor
+You can define alerts on both metrics and log data in Azure Monitor. An alert rule consists of the following:
+- The resource to be monitored, i.e., an Azure Virtual Machine
+- The second step is to define a condition, within which we specify the singnal or data from the resouce, i.e., CPU utilization within an Azure VM, to be monitored. Within the condition tab we need to specify the threshold under which an alert should be triggered. 
+- The next step would be to define an action group, within which we define a notification type, i.e., email or sms, and an action type to be triggered, i.e., running an Azure Function or a Logic App pipeline.
+
+There are 4 different severity levels for the alert rule: 
+- 0-Critical
+- 1-Error
+- 2-Warning
+- 3-Informational
+- 4-Verbose
+
+For more details on how to define rules for an alert, see [this documentation]((https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview)).
+
+### different alert types
+- **Metric alerts:** Metric alerts evaluate resource metrics at regular intervals.
+- **Log search alerts:** With log search alerts, you can use log analytics queries to evaluate resource logs at a predefined frequency.
+- **Activity log alerts:** Activity log alerts are triggered when new log events are produced that match the predefined condition. Resource health alert and service health alerts are activity log alerts that monitor the health of your resource and services.
+- **Smart detection alerts:** Smart detection alert on application insight resource warns you automatically on potential performence issues and anomolies in your web application.
+
+### Alerts and state
+- Stateless alerts: These alerts are triggered whenever the condition is matched, even if fired previously. All activity log alerts are stateless.
+- Stateful alerts: There are triggered once the conditions are matched, but won't get triggered again unless the alert is resovled. Stateful alerts keep track of the alert status; once fired, they'll hold a "fired" status, and when resolved, the alerts send a resolved notification and update the status to resolved. 
+
+## Log Analytics and Data Collection Rules
+In order to direct VM logs into the Log Analytics Workspace, we define something known as Data Collection Rules in Azure Monitor, within which we define VM as the source and choose the type of data from the VM we'd like to capture, and then choose Log Analytics Workspace as the destination. 
+
+When Data Collection Rule has been defined against a source Azure virtual machine, Azure Monitor will automatically install an agent on the source VM; 
+
+Note that we can use as many VMs as required as the source resource within the same Data Collection Rule.
+
+See [this documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-collection-rule-overview?tabs=portal) for more details on Data Collection Rules.
+
+### Log Analytics Queries
+- This can be used for search for a keyword in the event table
+
+```
+Event | search "demovm"
+```
+
+2. This can used to pick up 5 events taken in no specific order
+
+```
+Event | top 10 by TimeGenerated
+```
+
+3. This is used to filter based on a particular property of an event
+
+```
+Event | where EventLevel == 4
+```
+
+4. This can be used to check for the events generated in the previous 5 minutes
+
+```
+Event | where TimeGenerated > ago(5m)
+```
+
+5. This can be used to project certain properties
+
+```
+Event | where TimeGenerated > ago(5m) | project EventLog, Computer
+```
+
+6. Here you can summarize the events
+
+```
+Event |  where TimeGenerated > ago(1d) | summarize count() by Computer,Source
+```
+
+7. Here you can render a bar chart based on the data
+
+```
+Event |  where TimeGenerated > ago(1d) | summarize count() by Computer,Source | render barchart
+```
+
+## Extending Azure Monitor: 
+Azure Monitor starts to collect data as soon as the resources, like Azure VM, are created. However, we can extend data that is collected by Azure monitor by:
+- **Enabling diagnostics:** For some resources like Azure SQL, you only have access to the full version of logs when diognostics is enabled. 
+- **Using an agent:** For Virtual Machines, you can install a log analytics agent and configure it to send data to Log Analytics workspace. By doing this, you increase the extent of data collected in Azure Monitor. This agent is automatically installed on the VM as soon as a Data Collection Rule has been configured on the VM as the source.s
+
+
 ## Configure file and folder backups
 Azure backup replaces your off-site or on-premise backup solution with cloud-based solution that's secure, cost-effective and reliable.
 
@@ -648,35 +781,14 @@ When the recovery services vault is created, you can set up a backup policy in w
 Azure uses a MARS agent for backing up files, folders, system data from your on-premise machines and azure VMs. This agent is to be installed on your windows machine.
 
 ### Configure Azure Monitor
-Azure monitor is a comprehensive service that collects, analyzes and responds to relemetery data from both on-premise and cloud environments. An example scenario is to use this service to monitor the performance of your online applications and identify potential issues to maximize your application's availability and performance and improve customer experience. Here are 3 important capabilities of Azure monitor: 
+Azure monitor is a comprehensive service that collects, analyzes and responds to telemetery data from both on-premise and cloud environments. An example scenario is to use this service to monitor the performance of your online applications and identify potential issues to maximize your application's availability and performance and improve customer experience. Here are 3 important capabilities of Azure monitor: 
 - **Collection:** It collects numerical data from your Azure resources
 - **Troubleshoot and visualize:** Azure Monitor Logs (log analytics) provides activity logs, diagnostic logs and telemetry logs and provides query capabilities to troubleshoot and visualize your log data.
 - **Alerts and actions:** Azure monitor allows you to set up alerts for gathered data to notify you when critical conditions arise. We can then design corrective actions in an automated way.
 
-#### [Alerts in Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview)
-You can define alerts on both metrics and log data in Azure Monitor. An alert rule consists of the following:
-- The resource to be monitored, i.e., an Azure Virtual Machine
-- The singnal or data from the resouce, i.e., CPU utilization within an Azure VM
-- And the condition under which an alert should be fired, i.e., if cpu utilization is above 80 %
-- If we have more than one resource to be monitored, the alert rule condition is evaluated for each resource separately
 
-##### Action Groups
-- Once an alert is triggered, it will trigger an action group and updates the alert state for that resource. The alert instances of all your resource are stored for 30 days, and deleted after this 30-day retention period.
 
-##### different alert types
-- Metric alerts: Metric alerts evaluate resource metrics at regular intervals.
-- Log search alerts: With log search alerts, you can use log analytics queries to evaluate resource logs at a predefined frequency.
-- Activity log alerts: Activity log alerts are triggered when new log events are produced that match the predefined condition. Resource health alert and service health alerts are activity log alerts that monitor the health of your resource and services.
-- Smart detection alerts: Smart detection alert on application insight resource warns you automatically on potential performence issues and anomolies in your web application.
 
-##### Alerts and state
-- Stateless alerts: These alerts are triggered whenever the condition is matched, even if fired previously. All activity log alerts are stateless.
-- Stateful alerts: There are triggered once the conditions are matched, but won't get triggered again unless the alert is resovled. Stateful alerts keep track of the alert status; once fired, they'll hold a "fired" status, and when resolved, the alerts send a resolved notification and update the status to resolved. 
-
-### Extending Azure Monitor: 
-Because Azure Monitor is automatic, it begins to collect data as soon as the resources, like Azure VM, are created. We can extend data that is collected by Azure monitor by:
-- Enabling diagnostics: For some resources like Azure SQL, you only have access to the full version of logs when diognostics is enabled. 
-- Using an agent: For Virtual Machines, you can install a log analytics agent and configure it to send data to Log Analytics workspace. By doing this, you increase the extent of data collected in Azure Monitor.
 
 ### Configure Log Analytics
 Azure Monitor collects log data and stores it in tables. We can use log analytics in the portal and specify the inpit data sources and queries for data that is collected in Azure Monitor logs. Queries provide insight into the system infrastructure, such as assessing system updates or operational insidents. We can use the Kusto Query Language (KQL) for analyzing and aggregating log data. Here's an example of cases where log analytics within Azure Monitor can be helpful:
@@ -795,7 +907,7 @@ The purpose of Azure firewall is to ensure outbound and inbound communications t
 
 **Administrative units in Microsoft Entra ID**
 - See [this documentation](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/administrative-units).
-- An administrative unit is a container for Entra ID resources. administrative units have restricted role to any portion of the organization that you define. It can be useful to restrict administrative scope by using administrative units in organizations that are made up of independent divisions of any kind.
+- An administrative unit is a container for Entra ID resources. Administrative units have restricted role to any portion of the organization that you define. It can be useful to restrict administrative scope by using administrative units in organizations that are made up of independent divisions of any kind.
 - It's important to plan an organization's administrative units; IT department is scattered globally might create administrative units that define relevant geographical boundaries.
 
 **Resource locking**
@@ -806,7 +918,7 @@ Note that you cannot define tags at the management group level, but you can at s
 Here's the benefit of using tags:
 - **Resource management:** The IT teams needs to quickly spot resources in certain environments, ownership groups and other properties. Tags are useful for access and role managements.
 - **cost management and optimization:** Making business groups aware of the cost of cloud resource is important in undestanding consumptions of certain workloads.
-- **Governance and compliance:** Maintaining consistency across resources helps with identifying divergence from policies. 
+- **Governance and compliance:** Maintaining consistency across resources helps with identifying divergence from policies.
 - **Automation:** Having an organizational scheme is beneficial for automations in creating resources, monitoring operations and creating DevOps processes.
 - See the rest of the advantages [here in the documentation](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming-and-tagging-decision-guide?toc=%2Fazure%2Fazure-resource-manager%2Fmanagement%2Ftoc.json)
 
