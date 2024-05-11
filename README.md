@@ -510,10 +510,10 @@ Here are the different services for copying data in Azure SA:
 - This is established by the use of disk drives. You can use your own or that of Microsoft
 - Once an import (process of copying data into Azure Blob Storage) process, you can opt for a Disk Drive by Microsft. You can then copy the data into that disk drive by creating a job via the Azure portal.
 - The copy process is established by the use of the WAImportExportTool. It helps with the following: 
- - It helps to prepares the disk drive and copy data to it during the import process
- - It encrypts the data on the drive
- - It generates journal files that are used during import creation 
- - Helps to identify the number of disks required for the import
+    - It helps to prepares the disk drive and copy data to it during the import process
+    - It encrypts the data on the drive
+    - It generates journal files that are used during import creation 
+    - Helps to identify the number of disks required for the import
 
 **Azure Data Box**
 - Helps to copy terabytes of data in and out of Azure without using any internet connection
@@ -889,12 +889,6 @@ The purpose of Azure firewall is to ensure outbound and inbound communications t
 **How would new Azure Policies affect existing resources?**
 - The inclusion of new Azure policies don't have an impact on existing resources.
 
-**Backup reports for recovery services vault**
-- You can choose to send diagnostics data for an Azure Recovery Services vault to either a storage account or to a Log Analytics workspace. From this you can then view Backup reports. What's important is that the Storage Account needs to be in the same location as the Services Recovery Vault. However, when it comes to the log analytics workspace, it can be in any location.
-
-**What does a user access administrator role entail?**
-- The User Access Administrator role enables the user to grant other users access to Azure resources.
-
 **How to deploy a YAML file into an Azure Kubernetes Cluster**
 - Use the kubectl client tool to deploy the YAML file to the cluster. Follow [this documentation](https://learn.microsoft.com/en-us/azure/aks/tutorial-kubernetes-deploy-application?tabs=azure-cli). 
 
@@ -925,19 +919,6 @@ The purpose of Azure firewall is to ensure outbound and inbound communications t
 **Resource locking**
 - You can define resource locking for your subscription, resource groups and resource scopes to protect your resources against deletions and modifications. Note that you cannot define locking at the management group level.
 
-**Azure Resource tags**
-Note that you cannot define tags at the management group level, but you can at subscription level.
-Here's the benefit of using tags:
-- **Resource management:** The IT teams needs to quickly spot resources in certain environments, ownership groups and other properties. Tags are useful for access and role managements.
-- **cost management and optimization:** Making business groups aware of the cost of cloud resource is important in undestanding consumptions of certain workloads.
-- **Governance and compliance:** Maintaining consistency across resources helps with identifying divergence from policies.
-- **Automation:** Having an organizational scheme is beneficial for automations in creating resources, monitoring operations and creating DevOps processes.
-- See the rest of the advantages [here in the documentation](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming-and-tagging-decision-guide?toc=%2Fazure%2Fazure-resource-manager%2Fmanagement%2Ftoc.json)
-
-**What is conditional access policy?**
-- Conditional Access policies at their simplest are if-then statements; if a user wants to access a resource, then they must complete an action. For example, if a user wants to access an application, or Microsoft 365, they must perform a multi-factor authentication.
-- Conditional access polict takes signal from various sources before making a decition, the most restricting devision being the access blockage, and the less restrictive decision to grant user based on conditions like multi-factor authentication, or requiring the device to be compliance. For more details on the types of signal the conditional access policy takes into account, and the types of decisions and requirements for access, see [this documentation](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview)
-- Administrators with [Conditional Access Administrator](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference#conditional-access-administrator) role can manange access policies. 
 
 **ARM Templates**
 - Use the ```copyIndex()``` function to iterate to specify the index vaule of the copy iteration. Useful for cases where we'd like to deploy multiple copies of the same resource.
@@ -997,7 +978,7 @@ Here's the benefit of using tags:
 - In order to be able to log into a VM, it's not enough to have a contributor role over the VM scope, but you also need to have the ```Virtual Machine User Login``` role to be able to do so.
 
 **Data Collection Rules**
-- Currently you can only set Azure Virtual Machines as the data source for data collection rules.*
+- Currently you can only set Azure Virtual Machines as the data source for data collection rules.
 - Currently the Log Analytics workspace is supported as the destination for the data collection rule.
 
 **Swapping between slots**
