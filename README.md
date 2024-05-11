@@ -703,6 +703,8 @@ Note that we can use as many VMs as required as the source resource within the s
 See [this documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-collection-rule-overview?tabs=portal) for more details on Data Collection Rules.
 
 ### Log Analytics Queries
+Here's an overview of some of the most important queries using KQL within Log Analytics from the perspective of the AZ-104 exam. 
+
 - This can be used for search for a keyword in the event table
 
 ```
@@ -750,6 +752,13 @@ Azure Monitor starts to collect data as soon as the resources, like Azure VM, ar
 - **Enabling diagnostics:** For some resources like Azure SQL, you only have access to the full version of logs when diognostics is enabled. 
 - **Using an agent:** For Virtual Machines, you can install a log analytics agent and configure it to send data to Log Analytics workspace. By doing this, you increase the extent of data collected in Azure Monitor. This agent is automatically installed on the VM as soon as a Data Collection Rule has been configured on the VM as the source.s
 
+## Azure VM Insight
+As discussed before, you can define Data Collection Rules on your VMs and send certain log data to the Log Analytics Workspace using an agent on the source VM, and then start running your queries and peform aggregations, analysis and visualizations on the results and define log search alerts. However, with the help of a feature called Azure VM Inisht in Azure Monitor, certain metrics get automatically detected and you get notified in cased of any any performance, network or health anomolies. 
+
+In order to take advantage of this feature, it has to be enabled under the "insight" tab of the VM resource. Here's what it does: 
+- Helps to monitor the heath and performance of Azure VMs.
+- Helps to identify performance and network issues in your Azure VMs.
+- Has support for VMs, VM scale-sets and on-premise machines.
 
 ## Configure file and folder backups
 Azure backup replaces your off-site or on-premise backup solution with cloud-based solution that's secure, cost-effective and reliable.
@@ -766,43 +775,46 @@ Azure backup offers multiple components or agents that you download and deploy o
 **NOTE -** If you're using Azure Backup for Azure Files file shares, you don't need to configure the storage replication type. Azure Files backup is snapshot-based, and no data is transferred to the vault. Snapshots are stored in the same Azure storage account as your backed-up file share.
 
 ### Azure VM backup
-In order for the backups to be implemented, an extention needs to be installed on the agent running in the Azure VM. The first step in implementing a backup for Azure VM is to reploy a Azure Recovery Services Vault. It's management entity that stores recovery points over time, and it provides an interface for peforming backup-related operations.
+In order for the backups to be implemented, an extention needs to be installed on the agent running in the Azure VM. The first step in implementing a backup for Azure VM is to deploy a Azure Recovery Services Vault. It's a management entity that stores recovery points over time, and it provides an interface for peforming backup-related operations.
 
-When the recovery services vault is created, you can set up a backup policy in which you can determine the backup schedule. The default policy creates a backup once a day and retains them for 30 days; we can create a new policy to define those settings for our use case. Here are a few notes on Backup policy:
+#### Azure Backup Policy
+When the recovery services vault is created, you can set up a backup policy in which you can determine the backup schedule. The default policy creates a backup once a day and retains them for 30 days; we can create a new policy to define those settings for your use case. Here are a few notes on Backup policy:
 - The services recovery vault should be in the same region as the Virtual Machine
 - Once we enable the backup, it'll deploy the new policy to the recovery services vault and installs the backup extension on the VM agent installed in Azure VM.
-- The following settings needs to be specified when creating a backup policy:
- - policy name; Name for the new policy 
- - schedule: How often the backups should take place.
- - instant restore: Specify how long you'd like to retain snapshots locally
- - retention range: Specify how long you'd like to keep your daily, weekly, monthly or yearly backups.
+- The backup tool first takes a snapshot of the data in the VM
+- The snapshot is then copied into the Recovery Services Vault.
 
-### Microsoft Azure Recover Services Agent
-Azure uses a MARS agent for backing up files, folders, system data from your on-premise machines and azure VMs. This agent is to be installed on your windows machine.
+The following settings needs to be specified when creating a backup policy:
+- policy name; Name for the new policy 
+- schedule: How often the backups should take place.
+- instant restore: Specify how long you'd like to retain snapshots locally
+- retention range: Specify how long you'd like to keep your daily, weekly, monthly or yearly backups.
 
-### Configure Azure Monitor
-Azure monitor is a comprehensive service that collects, analyzes and responds to telemetery data from both on-premise and cloud environments. An example scenario is to use this service to monitor the performance of your online applications and identify potential issues to maximize your application's availability and performance and improve customer experience. Here are 3 important capabilities of Azure monitor: 
-- **Collection:** It collects numerical data from your Azure resources
-- **Troubleshoot and visualize:** Azure Monitor Logs (log analytics) provides activity logs, diagnostic logs and telemetry logs and provides query capabilities to troubleshoot and visualize your log data.
-- **Alerts and actions:** Azure monitor allows you to set up alerts for gathered data to notify you when critical conditions arise. We can then design corrective actions in an automated way.
+#### File Recovery
+Once the backup has ended and the snapshot has been created locally in the VM and copied in the recovery services vault as well, we can go ahead and perform a File Recovery under the "backup" tab of the VM resource. This feature allows us to recover specific files from the data in the VM. While performing the file recovery, we need to choose the following: 
+- Recovery Point: Corresponds to a specific snapshot taken of the VM data
+- Download an executable: This will mount the disk from the recovery point to the local machine on which it runs.
 
+#### VM Recovery
+This feature allows us to restore the whole VM. We can choose to create or replace the existing VM or Data Disk for the VM recovery feature. For this, we'll need a Storage Account in place; this is used as staging environment to copy the data from restore point in a recovery services vault.
 
+#### Azure Recovery Services (MARS) Agent
+In the previous section we looked at how we get a snapshop of the whole VM using the recovery services vault. However, there are certain scenarios where we'd like to back up a selective number of files or folders. For this, we can use the Recovery Services Vault Agent (MARS):
+- Using this agent, you can perform select backup of file and folders, or even the whole Windows volume
+- This can be used on your Azure VMs or on-premise machines
+- The recovery services agent needs to be downloaded and installed
 
+#### Azure Backup Reports
+We can enable diagnostic logs for the recovery services vault resource and send its backup data to either a Storage Account or a Log Analytics Workspace to have backup reports. As a destination for the diagnostic logs, we can either choose a storage account or a log analytics workspace.
 
+Note that for storage account, it has to be in the same region as the recovery services vault. However, for log analytics workspace, there's no limit for the region.
 
-### Configure Log Analytics
-Azure Monitor collects log data and stores it in tables. We can use log analytics in the portal and specify the inpit data sources and queries for data that is collected in Azure Monitor logs. Queries provide insight into the system infrastructure, such as assessing system updates or operational insidents. We can use the Kusto Query Language (KQL) for analyzing and aggregating log data. Here's an example of cases where log analytics within Azure Monitor can be helpful:
-- Abnormal behavior from a specific account
-- Users installing unapproved software
-- Unexpected system reboots or shutdowns
-- Evidence of security breaches
-- Specific problems in loosely coupled applications
+## Azure Site Recovery
+It's a feature for Azure VMs that helps to support business continuity and disaster recovery. It ensures that your apps and workloads are running when there are planned or unplanned outages. This feature is available not only for Azure VMs, but also on on-premise centers and data centers.
 
-### Configure Alerting
-Here are 3 alert types: 
-- **Metrics alerts:** Provide an alert trigger when a specified threshold is exceeded. For example, a metric alert can notify you when CPU usage is greater than 95 percent. 
--**Activity log alert:** Notifies you when a resource changes state, i.e., when a resource has been deleted.
-- **Log alerts:** This is based on things written to log files. For example, a log alert can notify you when a web server has returned a number of 404 or 500 responses.
+using this feature, the data, apps, and workloads running on a primary server get continuously replicated to a secondary server to ensure continuity of critical applications; and if there are changes implemented on the application running on the primary servers, those changes have to be instantly replicated on the secondary server as well.
+
+This feature is preferred over the backup solution for business critical applications where instant failover to the secodary region is absolutely necessary and waiting for a backup tool is not an option. Since backup occurs on a schedule, i.e., every few hours, and it takes certain amount of time for the backup to succeed (local snapshot and copy into the recovery services vault), we might need to use such replication technologies for cases where continuous replications are required.
 
 ### Configure Network watcher
 Network watcher enables you to monitor and repair the network health of IaaS services, such as Virtual Machines, VPN Gateways, Load Balancers etc. It provides 3 important capabilities: Monitoring, Network diagnostic tools, and Traffic. See all the [documentation](https://learn.microsoft.com/en-us/azure/network-watcher/network-watcher-overview#monitoring). 
