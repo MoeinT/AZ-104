@@ -1,7 +1,7 @@
 # AZ-104
-This repository is to study and prepare for the AZ-104 microsoft certificate; we'll review the most important resources that are a target for this certification. They're the required components to become an Azure Administrator.
+This repository is designed to study, prepare for, and document the AZ-104 Microsoft certification. We will review the key resources targeted by this certification, which are essential components for becoming an Azure Administrator.
 
-All the resources that are subject to this certification, such as networking resources, virtual machine, Azure Kubernetes etc. will be deployed and managed using Infrastructure as Code (IaC) concepts with Terraform as part of a CI/CD pipeline.
+All resources relevant to this certification, such as networking resources, virtual machines, Azure Kubernetes, etc., will be deployed and managed using Infrastructure as Code (IaC) principles with Terraform.
 
 # Configure and manage virtual networks for Azure administrators
 ## Azure Virtual Network
